@@ -1,6 +1,5 @@
-package alexrnov.ledcubes;
+package alexrnov.memocards;
 
-import android.util.Log;
 import android.view.MotionEvent;
 
 import androidx.annotation.NonNull;

@@ -1,10 +1,8 @@
-package alexrnov.ledcubes
+package alexrnov.memocards
 
-import alexrnov.ledcubes.BasicColor.transparent
 import android.app.ActivityManager
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import java.util.*
 

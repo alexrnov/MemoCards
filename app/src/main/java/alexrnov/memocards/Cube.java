@@ -1,10 +1,8 @@
 
-package alexrnov.ledcubes;
+package alexrnov.memocards;
 
 import android.opengl.GLES20;
 import android.opengl.Matrix;
-
-import java.nio.FloatBuffer;
 
 /**
  * A class for creating a separate cube that can change color. No indices or

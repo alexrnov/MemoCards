@@ -1,4 +1,4 @@
-package alexrnov.ledcubes;
+package alexrnov.memocards;
 
 import android.content.Context;
 import android.opengl.GLES20;
@@ -16,7 +16,7 @@ import static alexrnov.enginegl.Textures.loadTextureWithMipMapFromRaw;
 import alexrnov.enginegl.CardVertices;
 import alexrnov.enginegl.MeanValue;
 import alexrnov.enginegl.ObjectSize;
-import alexrnov.ledcubes.enginegl.Object3D;
+import alexrnov.memocards.enginegl.Object3D;
 
 
 public class SceneRenderer implements GLSurfaceView.Renderer {
