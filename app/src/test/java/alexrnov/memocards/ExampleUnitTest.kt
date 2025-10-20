@@ -1,4 +1,4 @@
-package alexrnov.ledcubes
+package alexrnov.memocards
 
 import org.junit.Test
 

@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "alexrnov.ledcubes"
+    namespace = "alexrnov.memocards"
     compileSdk = 36
 
     defaultConfig {
