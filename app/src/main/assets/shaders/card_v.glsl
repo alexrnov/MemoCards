@@ -42,7 +42,7 @@ struct DiffuseLight { // структура для диффузного осве
 uniform AmbientLight u_ambientLight; // переменная для внешнего освещения
 uniform DiffuseLight u_diffuseLight; // переменная для диффузного освещения
 
-const vec3 lightPosition = vec3(0.0, 0.0, -12.0); // позиция источника света
+const vec3 lightPosition = vec3(0.0, 0.0, 18.0); // позиция источника света
 
 void main() {
     // расчитать итоговый цвет для внешнего освещение
