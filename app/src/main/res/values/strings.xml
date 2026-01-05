@@ -4,6 +4,11 @@
     <!-- OpenGL labels -->
     <string name="mistakes">Mistakes: </string>
 
+    <!-- Main menu -->
+    <string name="start_game">Start game</string>
+    <string name="settings">Settings</string>
+    <string name="favorites">Favorites</string>
+
     <!-- Settings labels -->
     <string name="wood_material">wood</string>
     <string name="stone_material">stone</string>

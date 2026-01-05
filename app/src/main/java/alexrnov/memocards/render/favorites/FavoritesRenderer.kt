@@ -1,12 +1,12 @@
-package alexrnov.memocards.render
+package alexrnov.memocards.render.favorites
 
 import alexrnov.enginegl.MeanValue
-import alexrnov.memocards.Initialization.appStorage
+import alexrnov.memocards.Initialization
+import alexrnov.memocards.activities.FavoritesActivity
 import alexrnov.memocards.activities.GameActivity
 import alexrnov.memocards.cards.Card
 import alexrnov.memocards.cards.CardsCreator
 import alexrnov.memocards.cards.CardsSettings
-
 import alexrnov.memocards.cards.setComposition
 import android.content.Context
 import android.opengl.GLES20
@@ -19,8 +19,8 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.sin
 
-class SceneRenderer(private val context: Context, private val cardsSettings: CardsSettings) : GLSurfaceView.Renderer {
-	private var gameActivity: GameActivity? = null
+class FavoritesRenderer(private val context: Context, private val cardsSettings: CardsSettings) : GLSurfaceView.Renderer {
+	private var gameActivity: FavoritesActivity? = null
 	private var ky = 0.30f // coefficient for camera rotation
 
 	private val viewMatrix = FloatArray(16)
@@ -58,11 +58,11 @@ class SceneRenderer(private val context: Context, private val cardsSettings: Car
 	override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
 		Log.i("memo", "onSurfaceCreated")
 
-		val newGame = appStorage.getBoolean("newGame", true)
+		val newGame = Initialization.appStorage.getBoolean("newGame", true)
 		Log.i("memo", "newGame = $newGame")
 		val cardsCreator = CardsCreator()
 		if (newGame) {
-			appStorage.edit { putBoolean("newGame", false) }
+			Initialization.appStorage.edit { putBoolean("newGame", false) }
 			cards = cardsCreator.createCards(context, scale, cardsSettings)
 		} else {
 			cards = cardsCreator.recoveryCards(context, scale)
@@ -93,14 +93,18 @@ class SceneRenderer(private val context: Context, private val cardsSettings: Car
 		calibrateCamera(width, height)
 		setComposition(cards, portrait = width < height)
 
-		val secondCardIndex = appStorage.getInt("secondCardIndex", -1)
-		val firstCardIndex = appStorage.getInt("firstCardIndex", -1)
+		val secondCardIndex = Initialization.appStorage.getInt("secondCardIndex", -1)
+		val firstCardIndex = Initialization.appStorage.getInt("firstCardIndex", -1)
 		Log.i("memo", "firstCardIndex = $firstCardIndex, secondCardIndex = $secondCardIndex")
-		val firstCardId = appStorage.getInt("firstCardId", -1)
-		val openCards = appStorage.getStringSet("openCards", emptySet<String>())
-		openCards?.forEach {
-			Log.i("memo", "openCards = ${it}")
-			cards[it.toInt()]?.openCard()
+		val firstCardId = Initialization.appStorage.getInt("firstCardId", -1)
+		val openCards = Initialization.appStorage.getStringSet("openCards", emptySet<String>())
+		//openCards?.forEach {
+			//Log.i("memo", "openCards = ${it}")
+			//cards[it.toInt()]?.openCard()
+		//}
+
+		cards.forEach { card ->
+			card.value.openCard()
 		}
 		if (firstCardIndex != -1) { // если открыта первая карта открыть ее при повороте экрана
 			cards[firstCardIndex]?.openCard()
@@ -143,7 +147,7 @@ class SceneRenderer(private val context: Context, private val cardsSettings: Car
 
 	@Synchronized
 	fun openCard(x: Float, y: Float) {
-		val secondCardIndex = appStorage.getInt("secondCardIndex", -1)
+		val secondCardIndex = Initialization.appStorage.getInt("secondCardIndex", -1)
 		if (secondCardIndex != -1) {
 			// в настоящий момент открывается вторая карта
 			return
@@ -154,26 +158,26 @@ class SceneRenderer(private val context: Context, private val cardsSettings: Car
 			return
 		}
 
-		val openCards = appStorage.getStringSet("openCards", emptySet())
+		val openCards = Initialization.appStorage.getStringSet("openCards", emptySet())
 		if (openCards == null) {
 			return
 		}
 
-		val firstCardIndex = appStorage.getInt("firstCardIndex", -1)
+		val firstCardIndex = Initialization.appStorage.getInt("firstCardIndex", -1)
 		// если нажата первая открытая карточка или карточка уже открытой пары
 		if (firstCardIndex == index || openCards.contains(index.toString())) {
 			return
 		}
 
-		val firstCardId = appStorage.getInt("firstCardId", -1)
+		val firstCardId = Initialization.appStorage.getInt("firstCardId", -1)
 		if (firstCardId == -1) { // если нажата первая карточка
-			appStorage.edit {
+			Initialization.appStorage.edit {
 				putInt("firstCardId", card.id)
 				putInt("firstCardIndex", index)
 			}
 			card.setRotationProcess(true)
 		} else { // если нажата вторая карточка
-			appStorage.edit {
+			Initialization.appStorage.edit {
 				putInt("secondCardIndex", index)
 			}
 			rotateSecondCard(firstCardId, firstCardIndex, index)
@@ -187,16 +191,16 @@ class SceneRenderer(private val context: Context, private val cardsSettings: Car
 			Log.i("memo", "firstCardId = $firstCardId, secondCard = ${cards[secondCardIndex]!!.id}")
 			if (firstCardId == secondCard.id) { // если вторая карточка совпала с первой - оставить их открытыми
 				val currentOpenCards = mutableSetOf(firstCardIndex.toString(), secondCardIndex.toString())
-				val openCards = appStorage.getStringSet("openCards", emptySet<String>())
+				val openCards = Initialization.appStorage.getStringSet("openCards", emptySet<String>())
 				openCards?.let { currentOpenCards.addAll(it) }
-				appStorage.edit {
+				Initialization.appStorage.edit {
 					putStringSet("openCards", currentOpenCards)
 				}
 			} else { // если карточки не совпали - закрыть обе карты
 				cards[firstCardIndex]?.setRotationProcess(true)
 				secondCard.setRotationProcess(true)
 			}
-			appStorage.edit {
+			Initialization.appStorage.edit {
 				putInt("firstCardId", -1)
 				putInt("firstCardIndex", -1)
 				putInt("secondCardIndex", -1)
@@ -225,7 +229,7 @@ class SceneRenderer(private val context: Context, private val cardsSettings: Car
 				xMax = vertices.xMin
 			}
 			if (xPass >= xMin && xPass <= xMax && yPass >= yMin
-					&& yPass <= yMax && !currentCard.isRotationProcess()) {
+				&& yPass <= yMax && !currentCard.isRotationProcess()) {
 				index = currentIndex
 				card = currentCard
 				return@forEach
@@ -271,7 +275,7 @@ class SceneRenderer(private val context: Context, private val cardsSettings: Car
 		}
 	}
 
-	fun setGameActivity(gameActivity: GameActivity) {
+	fun setGameActivity(gameActivity: FavoritesActivity) {
 		this.gameActivity = gameActivity
 	}
 

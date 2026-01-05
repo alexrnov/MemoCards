@@ -1,4 +1,4 @@
-package alexrnov.memocards.render;
+package alexrnov.memocards.render.game;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -11,14 +11,14 @@ import android.view.MotionEvent;
 import alexrnov.memocards.activities.GameActivity;
 import alexrnov.memocards.cards.CardsSettings;
 
-public class SurfaceView extends GLSurfaceView {
-    SceneRenderer renderer;
+public class GameSurfaceView extends GLSurfaceView {
+    GameRenderer renderer;
     private GestureDetector detector;
 
-    public SurfaceView(Context context) {
+    public GameSurfaceView(Context context) {
         super(context);
     }
-    public SurfaceView(Context context, AttributeSet attributes) {
+    public GameSurfaceView(Context context, AttributeSet attributes) {
         super(context, attributes);
     }
 
@@ -26,9 +26,9 @@ public class SurfaceView extends GLSurfaceView {
         setPreserveEGLContextOnPause(true); // save context OpenGL
         setEGLContextClientVersion(3);
         Log.i("memo", "init SurfaceView");
-        renderer = new SceneRenderer(context, cardsSettings);
+        renderer = new GameRenderer(context, cardsSettings);
         setRenderer(renderer);
-        detector = new GestureDetector(context, new CustomGestureDetector(renderer));
+        detector = new GestureDetector(context, new GameDetector(renderer));
     }
 
     @SuppressLint("ClickableViewAccessibility")
