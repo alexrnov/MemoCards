@@ -1,11 +1,15 @@
-package alexrnov.memocards;
+package alexrnov.memocards.render;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+
+import alexrnov.memocards.activities.GameActivity;
+import alexrnov.memocards.cards.CardsSettings;
 
 public class SurfaceView extends GLSurfaceView {
     SceneRenderer renderer;
@@ -18,12 +22,11 @@ public class SurfaceView extends GLSurfaceView {
         super(context, attributes);
     }
 
-    public void init(int versionGLES, Context context) {
+    public void init(Context context, CardsSettings cardsSettings) {
         setPreserveEGLContextOnPause(true); // save context OpenGL
-        // Tell the OGLView container that we want to create an OpenGL ES 2.0/3.0
-        // compatible context and install an OpenGL ES 2.0/3.0 compatible render
-        setEGLContextClientVersion(versionGLES);
-        renderer = new SceneRenderer(versionGLES, context);
+        setEGLContextClientVersion(3);
+        Log.i("memo", "init SurfaceView");
+        renderer = new SceneRenderer(context, cardsSettings);
         setRenderer(renderer);
         detector = new GestureDetector(context, new CustomGestureDetector(renderer));
     }
@@ -37,7 +40,7 @@ public class SurfaceView extends GLSurfaceView {
         return super.onTouchEvent(e);
     }
 
-    public SceneRenderer getSceneRenderer() {
-        return renderer;
+    public void setGameActivity(GameActivity gameActivity) {
+        renderer.setGameActivity(gameActivity);
     }
 }

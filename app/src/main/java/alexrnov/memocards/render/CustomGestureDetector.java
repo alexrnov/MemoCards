@@ -1,5 +1,7 @@
-package alexrnov.memocards;
+package alexrnov.memocards.render;
 
+import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 
 import androidx.annotation.NonNull;
@@ -7,7 +9,8 @@ import androidx.annotation.Nullable;
 
 import alexrnov.enginegl.commonGL.PositionUtils;
 
-public class CustomGestureDetector implements android.view.GestureDetector.OnGestureListener {
+public class CustomGestureDetector implements android.view.GestureDetector.OnGestureListener,
+        GestureDetector.OnDoubleTapListener {
     private PositionUtils positionUtils = new PositionUtils();
     private SceneRenderer renderer;
 
@@ -29,6 +32,21 @@ public class CustomGestureDetector implements android.view.GestureDetector.OnGes
     @Override
     public void onLongPress(@NonNull MotionEvent e) {
 
+    }
+
+    @Override
+    public boolean onDoubleTap(@NonNull MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onDoubleTapEvent(@NonNull MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
+        return false;
     }
 
     @Override

@@ -1,3 +1,18 @@
 <resources>
-    <string name="app_name">LedCubes</string>
+    <string name="app_name" translatable="false">Memo Cards 3D</string>
+
+    <!-- OpenGL labels -->
+    <string name="mistakes">Mistakes: </string>
+
+    <!-- Settings labels -->
+    <string name="wood_material">wood</string>
+    <string name="stone_material">stone</string>
+    <string name="plastic_material">plastic</string>
+    <string name="pattern_material">pattern</string>
+
+    <string name="cards12">12</string>
+    <string name="cards16">16</string>
+    <string name="cards20">20</string>
+    <string name="cards30">30</string>
+
 </resources>
