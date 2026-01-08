@@ -40,5 +40,11 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, SettingsActivity::class.java)
             startActivity(intent)
         }
+
+        val favoritesButton = findViewById<Button>(R.id.favoritesButton)
+        favoritesButton.setOnClickListener {
+            val intent = Intent(this, FavoritesActivity::class.java)
+            startActivity(intent)
+        }
     }
 }

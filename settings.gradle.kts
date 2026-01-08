@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "LedCubes"
+rootProject.name = "MemoCards"
 include(":app")
  

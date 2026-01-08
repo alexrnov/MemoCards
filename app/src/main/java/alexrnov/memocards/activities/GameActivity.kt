@@ -3,19 +3,45 @@ package alexrnov.memocards.activities
 import alexrnov.memocards.Initialization.appStorage
 import alexrnov.memocards.R
 import alexrnov.memocards.cards.CardsSettings
-import alexrnov.memocards.render.SurfaceView
+import alexrnov.memocards.render.game.GameSurfaceView
+import alexrnov.memocards.statistics.GameDatabase
+import alexrnov.memocards.statistics.GameEntity
 import android.app.ActivityManager
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
+import androidx.room.Room.databaseBuilder
+import java.text.SimpleDateFormat
+
+import java.util.Date
+import java.util.Locale
 
 class GameActivity : AppCompatActivity() {
-    private var surfaceView: SurfaceView? = null
+    private var gameSurfaceView: GameSurfaceView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
+
+        val db: GameDatabase = databaseBuilder(
+            applicationContext,
+            GameDatabase::class.java, "database_17"
+        ).allowMainThreadQueries().build()
+
+
+        val requests = db.requests()
+        Log.i("memo", "size in activity = " + requests.all.size)
+
+
+       // val gameEntity = GameEntity(0, "2026.01.07 12:04", 12, 5)
+       // requests.insert(gameEntity)
+        Log.i("memo", "size after = " + requests.all.size)
+        requests.all.forEach {
+            Log.i("memo", "${it.id}, ${it.date}, ${it.cardsQuantity}, ${it.errors}")
+        }
 
         val frontCardsSize: Int? = getResources().assets.list("front")?.size
         //val size = getAssets().list("front")?.size
@@ -41,7 +67,7 @@ class GameActivity : AppCompatActivity() {
             cardsQuantity = appStorage.getInt("cardsQuantity", 12)
         )
 
-        setContentView(R.layout.activity_gl)
+        setContentView(R.layout.activity_game)
 
         if (!isSupportedOpenGLES()) {
             return
@@ -55,13 +81,14 @@ class GameActivity : AppCompatActivity() {
                 putInt("firstCardIndex", -1)
                 putInt("secondCardIndex", -1)
                 putStringSet("openCards", emptySet<String>())
+                putInt("errors", 0)
             }
         } else {
             Log.i("memo", "not set params")
         }
-        surfaceView = findViewById(R.id.oglView)
-        surfaceView?.init(applicationContext, cardsSettings)
-        surfaceView?.setGameActivity(this)
+        gameSurfaceView = findViewById(R.id.oglView)
+        gameSurfaceView?.init(applicationContext, cardsSettings)
+        gameSurfaceView?.setGameActivity(this)
 
         // добавить прозрачность для статусбара и меню навигации
         window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
@@ -90,7 +117,21 @@ class GameActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        // todo перенести в диалоговое окно при выходе
         Log.i("memo", "GameActivity onDestroy")
+        val cardsQuantity = appStorage.getInt("cardsQuantity", 12)
+        val openCards = appStorage.getStringSet("openCards", emptySet<String>())
+        val errors = appStorage.getInt("errors", 0)
+        if (cardsQuantity == openCards?.size) {
+            Log.i("memo", "game success")
+        } else {
+            Log.i("memo", "game not end")
+        }
+
+        val sdf = SimpleDateFormat("yyyy.MM.dd HH:mm", Locale.getDefault())
+        val currentTimeString = sdf.format(Date())
+
+        Log.i("memo", "currentTimeString = $currentTimeString, $cardsQuantity, $errors")
         super.onDestroy()
     }
 
