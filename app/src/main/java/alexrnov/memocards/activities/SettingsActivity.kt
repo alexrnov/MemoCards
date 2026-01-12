@@ -12,9 +12,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.content.edit
+import alexrnov.memocards.databinding.ActivitySettingsBinding
 
-class SettingsActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener {
-
+class SettingsActivity : AppCompatActivity() {
 	private lateinit var woodRadioButton: RadioButton
 	private lateinit var stoneRadioButton: RadioButton
 	private lateinit var plasticRadioButton: RadioButton
@@ -27,11 +27,15 @@ class SettingsActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeList
 	private lateinit var manyCardsRadioButton: RadioButton
 	private lateinit var maxCardsRadioButton: RadioButton
 
+	private lateinit var binding: ActivitySettingsBinding
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
 		enableEdgeToEdge()
-		setContentView(R.layout.activity_settings)
+
+		binding = ActivitySettingsBinding.inflate(layoutInflater)
+		setContentView(binding.root)
 
 		ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
 			val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -45,13 +49,11 @@ class SettingsActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeList
 		patternRadioButton = findViewById(R.id.patternRadioButton)
 		materialRadioGroup = findViewById(R.id.materialRadioGroup)
 
-
 		cardsQuantityRadioGroup = findViewById(R.id.cardsQuantityRadioGroup)
 		lowCardsRadioButton = findViewById(R.id.lowCardsRadioButton)
 		mediumCardsRadioButton = findViewById(R.id.mediumCardsRadioButton)
 		manyCardsRadioButton = findViewById(R.id.manyCardsRadioButton)
 		maxCardsRadioButton = findViewById(R.id.maxCardsRadioButton)
-
 
 		defineMaterialRadioButtons()
 		defineCardsQuantityRadioButtons()
@@ -108,12 +110,5 @@ class SettingsActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeList
 			20 -> cardsQuantityRadioGroup.check(manyCardsRadioButton.id)
 			30 -> cardsQuantityRadioGroup.check(maxCardsRadioButton.id)
 		}
-	}
-
-	override fun onCheckedChanged(
-		buttonView: CompoundButton,
-		isChecked: Boolean
-	) {
-		Log.i("memo", "change")
 	}
 }
