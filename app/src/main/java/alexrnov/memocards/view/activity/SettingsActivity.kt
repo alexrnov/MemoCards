@@ -1,10 +1,9 @@
-package alexrnov.memocards.activities
+package alexrnov.memocards.view.activity
 
 import alexrnov.memocards.Initialization.appStorage
 import alexrnov.memocards.R
 import android.os.Bundle
 import android.util.Log
-import android.widget.CompoundButton
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import androidx.activity.enableEdgeToEdge
@@ -27,17 +26,16 @@ class SettingsActivity : AppCompatActivity() {
 	private lateinit var manyCardsRadioButton: RadioButton
 	private lateinit var maxCardsRadioButton: RadioButton
 
-	private lateinit var binding: ActivitySettingsBinding
+	private var binding: ActivitySettingsBinding? = null
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-
 		enableEdgeToEdge()
 
 		binding = ActivitySettingsBinding.inflate(layoutInflater)
-		setContentView(binding.root)
+		setContentView(binding?.root)
 
-		ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+		ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.settingsContainer)) { v, insets ->
 			val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
 			v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
 			insets
@@ -110,5 +108,11 @@ class SettingsActivity : AppCompatActivity() {
 			20 -> cardsQuantityRadioGroup.check(manyCardsRadioButton.id)
 			30 -> cardsQuantityRadioGroup.check(maxCardsRadioButton.id)
 		}
+	}
+
+	override fun onDestroy() {
+		super.onDestroy()
+		// чтобы биндинг и View были собраны сборщиком мусора
+		binding = null
 	}
 }

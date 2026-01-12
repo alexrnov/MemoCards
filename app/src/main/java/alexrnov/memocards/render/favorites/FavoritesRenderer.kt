@@ -2,8 +2,7 @@ package alexrnov.memocards.render.favorites
 
 import alexrnov.enginegl.MeanValue
 import alexrnov.memocards.Initialization
-import alexrnov.memocards.activities.FavoritesActivity
-import alexrnov.memocards.activities.GameActivity
+import alexrnov.memocards.view.activity.FavoritesActivity
 import alexrnov.memocards.cards.Card
 import alexrnov.memocards.cards.CardsCreator
 import alexrnov.memocards.cards.CardsSettings

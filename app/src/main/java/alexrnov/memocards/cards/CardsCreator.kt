@@ -45,7 +45,7 @@ class CardsCreator {
 		val frontNumbers = (1..frontCardsSize).shuffled(Random.Default).take(cardPairs)
 		val frontPictures: MutableList<String> = mutableListOf()
 		(0..cardPairs - 1).forEach {
-			frontPictures.add("front/front_${frontNumbers[it]}.jpg")
+			frontPictures.add("front/${frontNumbers[it]}.jpg")
 		}
 		return frontPictures
 	}

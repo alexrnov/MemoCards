@@ -3,39 +3,75 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/background"
-    android:id="@+id/main"
+    android:id="@+id/mainContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.MainActivity">
+    tools:context=".view.activity.MainActivity">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/mainAppBar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:title="@string/app_name" />
 
     <Button
         android:id="@+id/gameButton"
-        android:layout_width="wrap_content"
+        android:layout_width="150dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="104dp"
+        android:paddingBottom="20dp"
+        android:paddingTop="20dp"
+        android:textAllCaps="true"
+        app:backgroundTint="#EE8B8B"
         android:text="@string/start_game"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/settingsButton"
-        android:layout_width="wrap_content"
+        android:id="@+id/statisticsButton"
+        android:layout_width="150dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="112dp"
-        android:text="@string/settings"
+        android:layout_marginTop="84dp"
+        android:paddingBottom="20dp"
+        android:paddingTop="20dp"
+        android:textAllCaps="true"
+        android:text="@string/statistics"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/gameButton" />
 
     <Button
-        android:id="@+id/favoritesButton"
-        android:layout_width="wrap_content"
+        android:id="@+id/settingsButton"
+        android:layout_width="150dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="72dp"
-        android:text="@string/favorites"
+        android:layout_marginTop="24dp"
+        android:paddingBottom="20dp"
+        android:paddingTop="20dp"
+        android:textAllCaps="true"
+        android:text="@string/settings"
+        app:layout_constraintBottom_toTopOf="@+id/favoritesButton"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.503"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/settingsButton" />
+        app:layout_constraintTop_toBottomOf="@+id/statisticsButton" />
+
+    <Button
+        android:id="@+id/favoritesButton"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="64dp"
+        android:paddingBottom="20dp"
+        android:paddingTop="20dp"
+        android:textAllCaps="true"
+        android:text="@string/favorites"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.511"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

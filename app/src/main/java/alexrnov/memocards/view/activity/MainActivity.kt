@@ -1,7 +1,8 @@
-package alexrnov.memocards.activities
+package alexrnov.memocards.view.activity
 
 import alexrnov.memocards.Initialization.appStorage
 import alexrnov.memocards.R
+import alexrnov.memocards.view.statistics.StatisticsActivity
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -10,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.google.android.material.appbar.MaterialToolbar
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,7 +21,10 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        val toolbar = findViewById<MaterialToolbar>(R.id.mainAppBar)
+        setSupportActionBar(toolbar)
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainContainer)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
@@ -32,7 +37,14 @@ class MainActivity : AppCompatActivity() {
             appStorage.edit {
                 putStringSet("cards", emptySet<String>())
                 putBoolean("newGame", true)
+                putBoolean("gameOver", false)
             }
+        }
+
+        val statisticsButton = findViewById<Button>(R.id.statisticsButton)
+        statisticsButton.setOnClickListener {
+            val intent = Intent(this, StatisticsActivity::class.java)
+            startActivity(intent)
         }
 
         val settingsButton = findViewById<Button>(R.id.settingsButton)

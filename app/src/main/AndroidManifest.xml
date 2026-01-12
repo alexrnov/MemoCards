@@ -16,7 +16,7 @@
         android:theme="@style/Theme.MemoCards">
 
         <activity
-            android:name=".activities.MainActivity"
+            android:name=".view.activity.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -25,27 +25,35 @@
         </activity>
 
         <activity
-            android:name=".activities.GameActivity"
-            android:parentActivityName=".activities.MainActivity">
+            android:name=".view.activity.GameActivity"
+            android:parentActivityName=".view.activity.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.MainActivity"/>
+                android:value=".view.activity.MainActivity"/>
         </activity>
 
         <activity
-            android:name=".activities.SettingsActivity"
-            android:parentActivityName=".activities.MainActivity">
+            android:name=".view.activity.SettingsActivity"
+            android:parentActivityName=".view.activity.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.MainActivity"/>
+                android:value=".view.activity.MainActivity"/>
         </activity>
 
         <activity
-            android:name=".activities.FavoritesActivity"
-            android:parentActivityName=".activities.FavoritesActivity">
+            android:name=".view.statistics.StatisticsActivity"
+            android:parentActivityName=".view.activity.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.MainActivity"/>
+                android:value=".view.activity.MainActivity"/>
+        </activity>
+
+        <activity
+            android:name=".view.activity.FavoritesActivity"
+            android:parentActivityName=".view.activity.FavoritesActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".view.activity.MainActivity"/>
         </activity>
 
     </application>

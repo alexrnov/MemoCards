@@ -1,10 +1,9 @@
-package alexrnov.memocards.activities
+package alexrnov.memocards.view.activity
 
 import alexrnov.memocards.Initialization.appStorage
 import alexrnov.memocards.R
 import alexrnov.memocards.cards.CardsSettings
 import alexrnov.memocards.render.favorites.FavoritesSurfaceView
-import alexrnov.memocards.render.game.GameSurfaceView
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity

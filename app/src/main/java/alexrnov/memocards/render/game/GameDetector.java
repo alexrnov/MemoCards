@@ -5,7 +5,7 @@ import android.view.MotionEvent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
+import static alexrnov.memocards.Initialization.appStorage;
 import alexrnov.enginegl.commonGL.PositionUtils;
 
 public class GameDetector implements android.view.GestureDetector.OnGestureListener,
