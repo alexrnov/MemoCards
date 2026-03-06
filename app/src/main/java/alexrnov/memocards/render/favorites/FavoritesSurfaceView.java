@@ -4,17 +4,14 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
 import alexrnov.memocards.view.activity.FavoritesActivity;
-import alexrnov.memocards.cards.CardsSettings;
 
 public class FavoritesSurfaceView extends GLSurfaceView {
 	FavoritesRenderer renderer;
 	private GestureDetector detector;
-
 
 	public FavoritesSurfaceView(Context context) {
 		super(context);
@@ -23,12 +20,10 @@ public class FavoritesSurfaceView extends GLSurfaceView {
 		super(context, attributes);
 	}
 
-
-	public void init(Context context, CardsSettings cardsSettings) {
+	public void init(Context context) {
 		setPreserveEGLContextOnPause(true); // save context OpenGL
 		setEGLContextClientVersion(3);
-		Log.i("memo", "init SurfaceView");
-		renderer = new FavoritesRenderer(context, cardsSettings);
+		renderer = new FavoritesRenderer(context);
 		setRenderer(renderer);
 		detector = new GestureDetector(context, new FavoritesDetector(renderer));
 	}
@@ -42,7 +37,19 @@ public class FavoritesSurfaceView extends GLSurfaceView {
 		return super.onTouchEvent(e);
 	}
 
-	public void setGameActivity(FavoritesActivity gameActivity) {
-		renderer.setGameActivity(gameActivity);
+	public void setFavoritesActivity(FavoritesActivity favoritesActivity) {
+		renderer.setFavoritesActivity(favoritesActivity);
+	}
+
+	public void update() {
+		renderer.update();
+	}
+
+	public boolean isOpenLargeCard() {
+		return renderer.isOpenLargeCard();
+	}
+
+	public void closeLargeCard() {
+		renderer.closeLargeCard();
 	}
 }

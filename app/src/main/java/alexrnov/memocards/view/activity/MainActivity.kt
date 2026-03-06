@@ -15,13 +15,14 @@ import com.google.android.material.appbar.MaterialToolbar
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var toolbar: MaterialToolbar
 	override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        val toolbar = findViewById<MaterialToolbar>(R.id.mainAppBar)
+        toolbar = findViewById<MaterialToolbar>(R.id.mainAppBar)
         setSupportActionBar(toolbar)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainContainer)) { v, insets ->
@@ -55,6 +56,9 @@ class MainActivity : AppCompatActivity() {
 
         val favoritesButton = findViewById<Button>(R.id.favoritesButton)
         favoritesButton.setOnClickListener {
+            appStorage.edit {
+                putInt("largeCardIndex", -1)
+            }
             val intent = Intent(this, FavoritesActivity::class.java)
             startActivity(intent)
         }

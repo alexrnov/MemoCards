@@ -11,6 +11,7 @@
 /app/src/main/assets/objects
 /app/src/main/assets/front
 /app/src/main/assets/back
+/app/src/main/assets/empty
 /app/src/main/res/raw
 /app/src/main/java/alexrnov/memocards/enginegl
 .DS_Store
