@@ -25,6 +25,12 @@ class CardsCreator {
 			getCardsWithDifferentBackground(frontPictures, backPictures)
 		}
 
+		/*
+		cardsAsPaths.forEach {
+			println("card = $it")
+		}
+
+		 */
 		appStorage.edit { putStringSet("cards", cardsAsPaths) }
 
 		val cardsWithTextures = getCardsWithTextures(context, cardsAsPaths, scale)

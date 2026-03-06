@@ -28,6 +28,16 @@
     <string name="cards20">20</string>
     <string name="cards30">30</string>
 
+    <!-- Statistics dialog -->
+    <string name="statistics_dialog_title">Clear</string>
+    <string name="statistics_dialog_text">Clear history?</string>
+    <string name="statistics_dialog_clear_button">Clear</string>
+    <string name="statistics_dialog_cancel_button">Cancel</string>
+    <string name="statistics_empty_text">Empty</string>
+
+    <!-- Game snackBar -->
+    <string name="add_card_to_favorites_text">Добавлено в избранное</string>
+
     <!-- Exit dialog -->
     <string name="exit_dialog_title_pause">PAUSE</string>
     <string name="exit_dialog_title_statistics">Statistics</string>
@@ -35,11 +45,4 @@
     <string name="exit_dialog_text_statistics">Number of errors:</string>
     <string name="exit_dialog_menu_button">Exit</string>
     <string name="exit_dialog_cancel_button">Cancel</string>
-
-
-    <string name="statistics_dialog_title">Clear</string>
-    <string name="statistics_dialog_text">Clear history?</string>
-    <string name="statistics_dialog_clear_button">Clear</string>
-    <string name="statistics_dialog_cancel_button">Cancel</string>
-    <string name="statistics_empty_text">Empty</string>
 </resources>

@@ -1,7 +1,7 @@
 package alexrnov.memocards.view.statistics
 
 import alexrnov.memocards.R
-import alexrnov.memocards.statistics.GameDatabase
+import alexrnov.memocards.database.statistics.GameDatabase
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
