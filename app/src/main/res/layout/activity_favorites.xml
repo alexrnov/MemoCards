@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.FavoritesActivity">
+    tools:context=".view.activity.FavoritesActivity">
 
     <alexrnov.memocards.render.favorites.FavoritesSurfaceView
         android:id="@+id/favoritesOglView"

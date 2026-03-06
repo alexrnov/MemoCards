@@ -6,6 +6,7 @@
 
     <!-- Main menu -->
     <string name="start_game">Start game</string>
+    <string name="statistics">Statistics</string>
     <string name="settings">Settings</string>
     <string name="favorites">Favorites</string>
 
@@ -15,9 +16,30 @@
     <string name="plastic_material">plastic</string>
     <string name="pattern_material">pattern</string>
 
+    <!-- Statistics -->
+    <string name="title_statistics">Statistics</string>
+    <string name="title_date">date / time</string>
+    <string name="title_cards">cards</string>
+    <string name="title_errors">errors</string>
+    <string name="clear_statistics">clear</string>
+
     <string name="cards12">12</string>
     <string name="cards16">16</string>
     <string name="cards20">20</string>
     <string name="cards30">30</string>
 
+    <!-- Exit dialog -->
+    <string name="exit_dialog_title_pause">PAUSE</string>
+    <string name="exit_dialog_title_statistics">Statistics</string>
+    <string name="exit_dialog_text_pause">Exit to menu?</string>
+    <string name="exit_dialog_text_statistics">Number of errors:</string>
+    <string name="exit_dialog_menu_button">Exit</string>
+    <string name="exit_dialog_cancel_button">Cancel</string>
+
+
+    <string name="statistics_dialog_title">Clear</string>
+    <string name="statistics_dialog_text">Clear history?</string>
+    <string name="statistics_dialog_clear_button">Clear</string>
+    <string name="statistics_dialog_cancel_button">Cancel</string>
+    <string name="statistics_empty_text">Empty</string>
 </resources>

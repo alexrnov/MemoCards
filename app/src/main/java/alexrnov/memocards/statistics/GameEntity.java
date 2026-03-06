@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey;
 @Entity
 public class GameEntity {
 	@PrimaryKey
-	public int id;
+	public long id;
 
 	@ColumnInfo(name = "date")
 	public String date;
@@ -18,7 +18,7 @@ public class GameEntity {
 	@ColumnInfo(name = "errors")
 	public int errors;
 
-	public GameEntity(int id, String date, int cardsQuantity, int errors) {
+	public GameEntity(long id, String date, int cardsQuantity, int errors) {
 		this.id = id;
 		this.date = date;
 		this.cardsQuantity = cardsQuantity;

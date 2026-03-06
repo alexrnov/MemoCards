@@ -36,6 +36,8 @@ android {
     buildFeatures {
         // включить функцию генерирации классов для доступа к виджетам в XML-разметке
         viewBinding = true
+        // включить функцию Data Binding
+        dataBinding = true
     }
 }
 

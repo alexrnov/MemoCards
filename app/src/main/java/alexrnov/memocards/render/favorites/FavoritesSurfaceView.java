@@ -8,8 +8,7 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
-import alexrnov.memocards.activities.FavoritesActivity;
-import alexrnov.memocards.activities.GameActivity;
+import alexrnov.memocards.view.activity.FavoritesActivity;
 import alexrnov.memocards.cards.CardsSettings;
 
 public class FavoritesSurfaceView extends GLSurfaceView {

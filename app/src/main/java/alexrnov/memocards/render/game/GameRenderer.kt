@@ -1,9 +1,8 @@
 package alexrnov.memocards.render.game
 
 import alexrnov.enginegl.MeanValue
-import alexrnov.memocards.Initialization
 import alexrnov.memocards.Initialization.appStorage
-import alexrnov.memocards.activities.GameActivity
+import alexrnov.memocards.view.activity.GameActivity
 import alexrnov.memocards.cards.Card
 import alexrnov.memocards.cards.CardsCreator
 import alexrnov.memocards.cards.CardsSettings
@@ -15,6 +14,9 @@ import android.opengl.Matrix
 import android.os.SystemClock
 import android.util.Log
 import androidx.core.content.edit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.sin
@@ -191,6 +193,15 @@ class GameRenderer(private val context: Context, private val cardsSettings: Card
 				openCards?.let { currentOpenCards.addAll(it) }
 				appStorage.edit {
 					putStringSet("openCards", currentOpenCards)
+				}
+				val cardsQuantity = appStorage.getInt("cardsQuantity", 12)
+				val errors = appStorage.getInt("errors", 0)
+				if (currentOpenCards.size == cardsQuantity) {
+					GlobalScope.launch(Dispatchers.Main) {
+						//delay(1000L)
+
+						gameActivity?.finishGame(errors)
+					}
 				}
 			} else { // если карточки не совпали - закрыть обе карты
 				cards[firstCardIndex]?.setRotationProcess(true)

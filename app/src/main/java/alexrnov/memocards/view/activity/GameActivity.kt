@@ -1,44 +1,46 @@
-package alexrnov.memocards.activities
+package alexrnov.memocards.view.activity
 
 import alexrnov.memocards.Initialization.appStorage
 import alexrnov.memocards.R
 import alexrnov.memocards.cards.CardsSettings
 import alexrnov.memocards.render.game.GameSurfaceView
 import alexrnov.memocards.statistics.GameDatabase
-import alexrnov.memocards.statistics.GameEntity
 import android.app.ActivityManager
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.view.WindowManager
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.edit
+import androidx.databinding.DataBindingUtil
 import androidx.room.Room.databaseBuilder
+import alexrnov.memocards.databinding.ActivityGameBinding
+import alexrnov.memocards.statistics.GameEntity
+import alexrnov.memocards.view.binding.ExitDialogData
 import java.text.SimpleDateFormat
-
 import java.util.Date
 import java.util.Locale
 
 class GameActivity : AppCompatActivity() {
     private var gameSurfaceView: GameSurfaceView? = null
+    private var exitDialog: ConstraintLayout? = null
+
+    private var exitDialogData = ExitDialogData()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
 
         val db: GameDatabase = databaseBuilder(
             applicationContext,
             GameDatabase::class.java, "database_17"
         ).allowMainThreadQueries().build()
 
-
         val requests = db.requests()
-        Log.i("memo", "size in activity = " + requests.all.size)
 
-
-       // val gameEntity = GameEntity(0, "2026.01.07 12:04", 12, 5)
-       // requests.insert(gameEntity)
-        Log.i("memo", "size after = " + requests.all.size)
+        Log.i("memo", "size room = " + requests.all.size)
         requests.all.forEach {
             Log.i("memo", "${it.id}, ${it.date}, ${it.cardsQuantity}, ${it.errors}")
         }
@@ -56,7 +58,6 @@ class GameActivity : AppCompatActivity() {
             return
         }
 
-
         //Log.i("memo", "frontCardsSize = $frontCardsSize, backCardsNumber = $backCardsSize")
 
         Log.i("memo", "GameActivity onCreate")
@@ -67,7 +68,24 @@ class GameActivity : AppCompatActivity() {
             cardsQuantity = appStorage.getInt("cardsQuantity", 12)
         )
 
-        setContentView(R.layout.activity_game)
+        val binding: ActivityGameBinding = DataBindingUtil.setContentView(this, R.layout.activity_game)
+
+        val gameOver = appStorage.getBoolean("gameOver", false)
+
+        if (!gameOver) {
+            exitDialogData.update(
+                title = getString(R.string.exit_dialog_title_pause),
+                dialogText = getString(R.string.exit_dialog_text_pause)
+            )
+        } else {
+            val errors = appStorage.getInt("errors", 0)
+            exitDialogData.update(
+                title = getString(R.string.exit_dialog_title_statistics),
+                dialogText = "${getString(R.string.exit_dialog_text_statistics)} $errors"
+            )
+        }
+
+        binding.exitDialogData = exitDialogData
 
         if (!isSupportedOpenGLES()) {
             return
@@ -89,6 +107,9 @@ class GameActivity : AppCompatActivity() {
         gameSurfaceView = findViewById(R.id.oglView)
         gameSurfaceView?.init(applicationContext, cardsSettings)
         gameSurfaceView?.setGameActivity(this)
+
+        exitDialog = findViewById(R.id.exitDialogBackground)
+        onBackPressedDispatcher.addCallback(this, callback)
 
         // добавить прозрачность для статусбара и меню навигации
         window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
@@ -117,21 +138,7 @@ class GameActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        // todo перенести в диалоговое окно при выходе
         Log.i("memo", "GameActivity onDestroy")
-        val cardsQuantity = appStorage.getInt("cardsQuantity", 12)
-        val openCards = appStorage.getStringSet("openCards", emptySet<String>())
-        val errors = appStorage.getInt("errors", 0)
-        if (cardsQuantity == openCards?.size) {
-            Log.i("memo", "game success")
-        } else {
-            Log.i("memo", "game not end")
-        }
-
-        val sdf = SimpleDateFormat("yyyy.MM.dd HH:mm", Locale.getDefault())
-        val currentTimeString = sdf.format(Date())
-
-        Log.i("memo", "currentTimeString = $currentTimeString, $cardsQuantity, $errors")
         super.onDestroy()
     }
 
@@ -150,8 +157,73 @@ class GameActivity : AppCompatActivity() {
         return info.reqGlEsVersion >= 0x30000
     }
 
-    @Synchronized
-    public fun fullscreen() {
+    val callback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            if (exitDialog?.visibility == View.VISIBLE) {
+                exitDialog?.visibility = View.GONE
+            } else {
+                exitDialog?.visibility = View.VISIBLE
+            }
+        }
+    }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("exitDialogVisibility", exitDialog?.visibility == View.VISIBLE)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        val isVisible = savedInstanceState.getBoolean("exitDialogVisibility")
+        exitDialog?.visibility = if (isVisible) View.VISIBLE else View.GONE
+    }
+
+    fun toMainMenu(view: View) {
+        val intent = Intent(this, MainActivity::class.java)
+        // при возврате в главное меню - отчистить стек переходов
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+    }
+
+    fun backToGame(view: View) {
+        exitDialog?.visibility = View.GONE
+    }
+
+    fun finishGame(errors: Int) {
+        appStorage.edit {
+            putBoolean("gameOver", true)
+        }
+        exitDialogData.update(
+            title = getString(R.string.exit_dialog_title_statistics),
+            dialogText = "${getString(R.string.exit_dialog_text_statistics)} $errors"
+        )
+        exitDialog?.visibility = View.VISIBLE
+
+
+
+        val cardsQuantity = appStorage.getInt("cardsQuantity", 12)
+        val openCards = appStorage.getStringSet("openCards", emptySet<String>())
+        val errors = appStorage.getInt("errors", 0)
+        if (cardsQuantity == openCards?.size) {
+            Log.i("memo", "game success")
+
+
+            val db: GameDatabase = databaseBuilder(
+                applicationContext,
+                GameDatabase::class.java, "database_17"
+            ).allowMainThreadQueries().build()
+
+            val requests = db.requests()
+
+            val sdf = SimpleDateFormat("yyyy.MM.dd, HH:mm", Locale.getDefault())
+            val currentTimeString = sdf.format(Date())
+
+            val lastUserId = requests.lastUserId
+
+            val gameEntity = GameEntity(lastUserId + 1, currentTimeString, cardsQuantity, errors)
+            requests.insertWithLimit(gameEntity)
+        } else {
+            Log.i("memo", "game not end")
+        }
     }
 }

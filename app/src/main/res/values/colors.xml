@@ -4,4 +4,12 @@
     <color name="white">#FFFFFFFF</color>
     <color name="gameMessage">#D5D5D5</color>
     <color name="background">#D5D5D5</color>
+
+    <color name="statistics_title_text">#6A6A6A</color>
+    <color name="statistics_item_text">#8C8C8C</color>
+    <color name="statistics_date_head">#BBE6A8</color>
+    <color name="statistics_cards_head">#B5E1E3</color>
+    <color name="statistics_errors_head">#F3E8BB</color>
+
+    <color name="exit_dialog_title">#AAC08F</color>
 </resources>
