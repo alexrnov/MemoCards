@@ -41,7 +41,6 @@ class FavoritesRenderer(private val context: Context, private val cardsSettings:
 	private val movAveragePeriod = 5f // #frames involved in average calc (suggested values 5-100)
 	private val smoothFactor = 0.1f // adjusting ratio (suggested values 0.01-0.5)
 
-
 	private var delta = 0f
 
 	private var cards: Map<Int, Card> = mapOf()
