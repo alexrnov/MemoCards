@@ -1,48 +1,28 @@
 package alexrnov.memocards.render.favorites
 
-import alexrnov.enginegl.MeanValue
 import alexrnov.memocards.Initialization
 import alexrnov.memocards.view.activity.FavoritesActivity
 import alexrnov.memocards.cards.Card
 import alexrnov.memocards.cards.CardsCreator
-import alexrnov.memocards.cards.CardsSettings
 import alexrnov.memocards.cards.setComposition
+import alexrnov.memocards.database.favorites.FavoritesDatabase
 import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
-import android.os.SystemClock
 import android.util.Log
 import androidx.core.content.edit
+import androidx.room.Room.databaseBuilder
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.sin
 
-class FavoritesRenderer(private val context: Context, private val cardsSettings: CardsSettings) : GLSurfaceView.Renderer {
+class FavoritesRenderer(private val context: Context) : GLSurfaceView.Renderer {
 	private var gameActivity: FavoritesActivity? = null
 	private var ky = 0.30f // coefficient for camera rotation
 
 	private val viewMatrix = FloatArray(16)
 	private val projectionMatrix = FloatArray(16)
-
-	private var f = 0.0f
-
-	private var smoothedDeltaRealTime_ms = 16.0f // initial value, Optionally you can save the new computed value (will change with each hardware) in Preferences to optimize the first drawing frames
-	private var movAverageDeltaTime_ms = smoothedDeltaRealTime_ms // mov Average start with default value
-	private var lastRealTimeMeasurement_ms: Long = 0 // temporal storage for last time measurement
-	private val meanValue = MeanValue(5000.toShort())
-
-	private var totalVirtualRealTime_ms = 0f
-	private val speedAdjustments_ms = 0f // to introduce a virtual Time for the animation (reduce or increase animation speed)
-	private var totalAnimationTime_ms = 0f
-	private val fixedStepAnimation_ms = 20f // 20ms for a 50FPS descriptive animation
-	private var interpolationRatio = 0f
-	// smooth constant elements to play with
-	private val movAveragePeriod = 5f // #frames involved in average calc (suggested values 5-100)
-	private val smoothFactor = 0.1f // adjusting ratio (suggested values 0.01-0.5)
-
-
-	private var delta = 0f
 
 	private var cards: Map<Int, Card> = mapOf()
 
@@ -51,30 +31,39 @@ class FavoritesRenderer(private val context: Context, private val cardsSettings:
 	private var zCamera = 3.0f
 	private val scale = 1.0f
 
+	private var reset = false
+
 	var screenWidth: Int = 0
 	var screenHeight: Int = 0
+
+	private var isPortrait = true
+
+	private lateinit var favoritesDatabase: FavoritesDatabase
 
 	override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
 		Log.i("memo", "onSurfaceCreated")
 
-		val newGame = Initialization.appStorage.getBoolean("newGame", true)
-		Log.i("memo", "newGame = $newGame")
-		val cardsCreator = CardsCreator()
-		if (newGame) {
-			Initialization.appStorage.edit { putBoolean("newGame", false) }
-			cards = cardsCreator.createCards(context, scale, cardsSettings)
-		} else {
-			cards = cardsCreator.recoveryCards(context, scale)
+		favoritesDatabase = databaseBuilder(
+			context,
+			FavoritesDatabase::class.java, "database_18"
+		).allowMainThreadQueries().build()
+		val requests = favoritesDatabase.requests()
+		val favorites = requests.all
+		favorites.forEach {
+			Log.i("memo", "render card, id = ${it.id}, path = ${it.path}")
 		}
+		val favoritesPaths = favorites.mapNotNull { it.path }
+		val cardsCreator = CardsCreator()
+		cards = cardsCreator.createCardsFromDB(context, scale, favoritesPaths)
 
 		cameraPosition(-350.0f)
 
-		Log.i("memo", "cardPosition")
-		GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
+		GLES20.glClearColor(0.5f, 0.5f, 0.5f, 0.0f)
 		GLES20.glHint(GLES20.GL_GENERATE_MIPMAP_HINT, GLES20.GL_FASTEST)
 	}
 
 	override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
+		isPortrait = width < height
 		Log.i("memo", "onSurfaceChanged")
 		GLES20.glViewport(0, 0, width, height) // set screen size
 		this.screenWidth = width
@@ -83,40 +72,42 @@ class FavoritesRenderer(private val context: Context, private val cardsSettings:
 		val aspect = width.toFloat() / height.toFloat()
 		val k = 1f / 30 // coefficient is selected empirically
 
-		if (width < height) { // portrait orientation
+		if (isPortrait) { // portrait orientation
 			Matrix.frustumM(projectionMatrix, 0, -1f * k, 1f * k, (1 / -aspect) * k, (1 / aspect) * k, 0.1f, 40f)
 		} else { // landscape orientation
 			Matrix.frustumM(projectionMatrix, 0, -aspect * k, aspect * k, -1f * k, 1f * k, 0.1f, 40f)
 		}
 
 		calibrateCamera(width, height)
-		setComposition(cards, portrait = width < height)
-
-		val secondCardIndex = Initialization.appStorage.getInt("secondCardIndex", -1)
-		val firstCardIndex = Initialization.appStorage.getInt("firstCardIndex", -1)
-		Log.i("memo", "firstCardIndex = $firstCardIndex, secondCardIndex = $secondCardIndex")
-		val firstCardId = Initialization.appStorage.getInt("firstCardId", -1)
-		val openCards = Initialization.appStorage.getStringSet("openCards", emptySet<String>())
-		//openCards?.forEach {
-			//Log.i("memo", "openCards = ${it}")
-			//cards[it.toInt()]?.openCard()
-		//}
+		setComposition(cards, portrait = isPortrait)
 
 		cards.forEach { card ->
 			card.value.openCard()
 		}
-		if (firstCardIndex != -1) { // если открыта первая карта открыть ее при повороте экрана
-			cards[firstCardIndex]?.openCard()
-		}
-		if (secondCardIndex != -1) {
-			rotateSecondCard(firstCardId, firstCardIndex, secondCardIndex)
-		}
 	}
 
 	override fun onDrawFrame(gl: GL10?) {
-		delta = meanValue.add(interpolationRatio)
-		//f = f + 1.1f;
-		f = f + delta * 2
+		Log.i("memo", "onDraw")
+		if (reset) {
+			reset = false
+
+			val requests = favoritesDatabase.requests()
+
+			val favorites = requests.all
+			favorites.forEach {
+				Log.i("memo", "id = ${it.id}, path = ${it.path}")
+			}
+			val favoritesPaths = favorites.mapNotNull { it.path }
+			val cardsCreator = CardsCreator()
+			cards = cardsCreator.createCardsFromDB(context, scale, favoritesPaths)
+
+			setComposition(cards, portrait = isPortrait)
+
+			cards.forEach { card ->
+				card.value.openCard()
+			}
+		}
+
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
 		GLES20.glEnable(GLES20.GL_DEPTH_TEST) // enable depth test
 
@@ -124,13 +115,8 @@ class FavoritesRenderer(private val context: Context, private val cardsSettings:
 		GLES20.glCullFace(GLES20.GL_BACK) // отбрасывать заднюю грань примитивов при рендеринге
 
 		cards.forEach { index, card ->
-			if (card.isRotationProcess()) {
-				card.rotate(delta)
-			}
 			card.draw(viewMatrix, projectionMatrix)
 		}
-
-		defineDeltaTime()
 	}
 
 	@Synchronized
@@ -146,64 +132,25 @@ class FavoritesRenderer(private val context: Context, private val cardsSettings:
 
 	@Synchronized
 	fun openCard(x: Float, y: Float) {
-		val secondCardIndex = Initialization.appStorage.getInt("secondCardIndex", -1)
-		if (secondCardIndex != -1) {
-			// в настоящий момент открывается вторая карта
-			return
-		}
-
 		val (index, card) = getSelectCard(x, y)
 		if (index == null || card == null) {
 			return
 		}
-
-		val openCards = Initialization.appStorage.getStringSet("openCards", emptySet())
-		if (openCards == null) {
-			return
-		}
-
-		val firstCardIndex = Initialization.appStorage.getInt("firstCardIndex", -1)
-		// если нажата первая открытая карточка или карточка уже открытой пары
-		if (firstCardIndex == index || openCards.contains(index.toString())) {
-			return
-		}
-
-		val firstCardId = Initialization.appStorage.getInt("firstCardId", -1)
-		if (firstCardId == -1) { // если нажата первая карточка
-			Initialization.appStorage.edit {
-				putInt("firstCardId", card.id)
-				putInt("firstCardIndex", index)
-			}
-			card.setRotationProcess(true)
-		} else { // если нажата вторая карточка
-			Initialization.appStorage.edit {
-				putInt("secondCardIndex", index)
-			}
-			rotateSecondCard(firstCardId, firstCardIndex, index)
-		}
 	}
 
-	private fun rotateSecondCard(firstCardId: Int, firstCardIndex: Int, secondCardIndex: Int) {
-		val secondCard = cards[secondCardIndex]?: return
+	@Synchronized
+	fun removeFavoriteCard(x: Float, y: Float) {
+		val (index, card) = getSelectCard(x, y)
+		Log.i("memo", "index = $index, card = ${card}, card frontPath = ${card?.frontPath}")
 
-		secondCard.setRotationProcess(true) {
-			Log.i("memo", "firstCardId = $firstCardId, secondCard = ${cards[secondCardIndex]!!.id}")
-			if (firstCardId == secondCard.id) { // если вторая карточка совпала с первой - оставить их открытыми
-				val currentOpenCards = mutableSetOf(firstCardIndex.toString(), secondCardIndex.toString())
-				val openCards = Initialization.appStorage.getStringSet("openCards", emptySet<String>())
-				openCards?.let { currentOpenCards.addAll(it) }
-				Initialization.appStorage.edit {
-					putStringSet("openCards", currentOpenCards)
-				}
-			} else { // если карточки не совпали - закрыть обе карты
-				cards[firstCardIndex]?.setRotationProcess(true)
-				secondCard.setRotationProcess(true)
-			}
-			Initialization.appStorage.edit {
-				putInt("firstCardId", -1)
-				putInt("firstCardIndex", -1)
-				putInt("secondCardIndex", -1)
-			}
+		val favoritesDatabase = databaseBuilder(
+			context,
+			FavoritesDatabase::class.java, "database_18"
+		).allowMainThreadQueries().build()
+		val requests = favoritesDatabase.requests()
+		card?.let {
+			requests.deleteByPath(it.frontPath)
+			reset = true
 		}
 	}
 
@@ -216,19 +163,13 @@ class FavoritesRenderer(private val context: Context, private val cardsSettings:
 
 		cards.forEach { currentIndex, currentCard ->
 			val vertices = currentCard.getVertices(projectionMatrix, screenWidth, screenHeight, scale, 0.500000f, 0.888800f, 0.001000f)
-			val xMin: Float
-			val xMax: Float
+			
 			val yMin = vertices.yMin
 			val yMax = vertices.yMax
-			if (!currentCard.isOpen()) {
-				xMin = vertices.xMin
-				xMax = vertices.xMax
-			} else {
-				xMin = vertices.xMax
-				xMax = vertices.xMin
-			}
-			if (xPass >= xMin && xPass <= xMax && yPass >= yMin
-				&& yPass <= yMax && !currentCard.isRotationProcess()) {
+			val	xMin = vertices.xMax
+			val	xMax = vertices.xMin
+
+			if (xPass >= xMin && xPass <= xMax && yPass >= yMin && yPass <= yMax) {
 				index = currentIndex
 				card = currentCard
 				return@forEach
@@ -276,31 +217,5 @@ class FavoritesRenderer(private val context: Context, private val cardsSettings:
 
 	fun setGameActivity(gameActivity: FavoritesActivity) {
 		this.gameActivity = gameActivity
-	}
-
-	private fun defineDeltaTime() {
-		totalVirtualRealTime_ms += smoothedDeltaRealTime_ms + speedAdjustments_ms
-		while (totalVirtualRealTime_ms > totalAnimationTime_ms) {
-			totalAnimationTime_ms += fixedStepAnimation_ms
-		}
-
-		interpolationRatio = ((totalAnimationTime_ms - totalVirtualRealTime_ms)
-				/ fixedStepAnimation_ms)
-
-		val currTimePick_ms = SystemClock.uptimeMillis()
-		val realTimeElapsed_ms: Float
-		if (lastRealTimeMeasurement_ms > 0) {
-			realTimeElapsed_ms = (currTimePick_ms - lastRealTimeMeasurement_ms).toFloat()
-		} else {
-			realTimeElapsed_ms = smoothedDeltaRealTime_ms // just the first time
-		}
-		movAverageDeltaTime_ms = (realTimeElapsed_ms + movAverageDeltaTime_ms
-				* (movAveragePeriod - 1)) / movAveragePeriod
-
-		// Calc a better approximation for smooth stepTime
-		smoothedDeltaRealTime_ms = smoothedDeltaRealTime_ms +
-				(movAverageDeltaTime_ms - smoothedDeltaRealTime_ms) * smoothFactor
-
-		lastRealTimeMeasurement_ms = currTimePick_ms
 	}
 }

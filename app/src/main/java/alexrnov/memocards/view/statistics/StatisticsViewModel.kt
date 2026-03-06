@@ -1,7 +1,7 @@
 package alexrnov.memocards.view.statistics
 
-import alexrnov.memocards.statistics.GameDatabase
-import alexrnov.memocards.statistics.GameEntity
+import alexrnov.memocards.database.statistics.GameDatabase
+import alexrnov.memocards.database.statistics.GameEntity
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData

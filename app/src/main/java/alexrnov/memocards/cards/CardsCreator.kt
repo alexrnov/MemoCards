@@ -25,6 +25,13 @@ class CardsCreator {
 			getCardsWithDifferentBackground(frontPictures, backPictures)
 		}
 
+		/*
+		cardsAsPaths.forEach {
+			println("card = $it")
+		}
+
+
+		 */
 		appStorage.edit { putStringSet("cards", cardsAsPaths) }
 
 		val cardsWithTextures = getCardsWithTextures(context, cardsAsPaths, scale)
@@ -107,19 +114,53 @@ class CardsCreator {
 
 		cardsWithPaths.forEach { card ->
 			val cardData = card.split(":")
+			Log.i("memo", "create card = $card")
 			val frontTextureId = Textures.loadTextureWithMipMapFromAsset(context, cardData[2])
 			val firstBackTextureId = Textures.loadTextureWithMipMapFromAsset(context, cardData[3])
-			val card = createCard(context, cardData[1].toInt(), frontTextureId, firstBackTextureId, scale)
+			val card = createCard(context, cardData[1].toInt(), frontTextureId, firstBackTextureId, scale, cardData[2])
 			cardsWithTextures.put(cardData[0].toInt(), card)
 		}
 		return cardsWithTextures
 	}
 
-	private fun createCard(context: Context, id: Int, pic: Int, backPic: Int, scale: Float): Card {
+	private fun createCard(context: Context, id: Int, pic: Int, backPic: Int, scale: Float, frontPath: String): Card {
 		return Card(
 			id,
 			Object3D(context, "objects/front.obj", "shaders/card_v.glsl", "shaders/card_f.glsl", pic, scale),
-			Object3D(context, "objects/back.obj", "shaders/card_v.glsl", "shaders/card_f.glsl", backPic, scale)
+			Object3D(context, "objects/back.obj", "shaders/card_v.glsl", "shaders/card_f.glsl", backPic, scale),
+			frontPath
 		)
+	}
+
+	/**
+	 * Создать карты на основе данных БД (избранные карты)
+	 */
+	fun createCardsFromDB(context: Context, scale: Float, frontPaths: List<String>): Map<Int, Card> {
+		val cardsAsPaths = getCardsWithOneBackgroundFromDB(frontPaths)
+
+		cardsAsPaths.forEach {
+			println("favorite card = $it")
+		}
+
+		val cardsWithTextures = getCardsWithTextures(context, cardsAsPaths, scale)
+		return cardsWithTextures
+	}
+
+	private fun getCardsWithOneBackgroundFromDB(
+		frontPictures: List<String>,
+	): Set<String> {
+		val backPicture = "back/pattern/1.jpg"
+		val clearPicture = "back/pattern/2.jpg"
+		val cardsWithPaths: MutableList<String> = mutableListOf()
+		for (i in 0..11) {
+			if (i < frontPictures.size) {
+				cardsWithPaths.add("${i}:${frontPictures[i]}:$backPicture")
+			} else {
+				cardsWithPaths.add("${i}:$clearPicture:$backPicture")
+			}
+		}
+		return cardsWithPaths
+			.mapIndexed { index, it -> "$index:$it" }
+			.toSet()
 	}
 }

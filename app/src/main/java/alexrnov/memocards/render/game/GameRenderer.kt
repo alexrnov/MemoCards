@@ -220,6 +220,44 @@ class GameRenderer(private val context: Context, private val cardsSettings: Card
 		}
 	}
 
+	@Synchronized
+	fun addCardToFavorites(x: Float, y: Float) {
+		val (index, card) = getSelectCard(x, y)
+
+		val openCards = appStorage.getStringSet("openCards", emptySet())
+
+		if (openCards == null) {
+			return
+		}
+
+		if (openCards.contains(index.toString())) {
+			val cards = appStorage.getStringSet("cards", emptySet())
+
+			val k = cards?.firstOrNull {
+				println("it = $it")
+				val v = it.split(":")
+				val index_ = v[0]
+				println("v[2] = ${v[2]}")
+				(index == index_.toInt())
+			}
+
+
+			println("k = ${k?.split(":")[2]}")
+
+
+			k?.let {
+				GlobalScope.launch(Dispatchers.Main) {
+					gameActivity?.addCardToFavorites(it.split(":")[2])
+				}
+			}
+
+			GlobalScope.launch(Dispatchers.Main) {
+				gameActivity?.showSnackBar()
+			}
+		}
+
+	}
+
 	private fun getSelectCard(x: Float, y: Float): Pair<Int?, Card?>  {
 		val xPass = x
 		val yPass = screenHeight - y

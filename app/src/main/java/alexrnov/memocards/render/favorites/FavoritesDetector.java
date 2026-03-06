@@ -7,7 +7,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import alexrnov.enginegl.commonGL.PositionUtils;
-import alexrnov.memocards.render.game.GameRenderer;
 
 public class FavoritesDetector implements android.view.GestureDetector.OnGestureListener,
 		GestureDetector.OnDoubleTapListener {
@@ -31,7 +30,7 @@ public class FavoritesDetector implements android.view.GestureDetector.OnGesture
 
 	@Override
 	public void onLongPress(@NonNull MotionEvent e) {
-
+		renderer.removeFavoriteCard(e.getX(), e.getY());
 	}
 
 	@Override

@@ -24,11 +24,10 @@ public class FavoritesSurfaceView extends GLSurfaceView {
 	}
 
 
-	public void init(Context context, CardsSettings cardsSettings) {
+	public void init(Context context) {
 		setPreserveEGLContextOnPause(true); // save context OpenGL
 		setEGLContextClientVersion(3);
-		Log.i("memo", "init SurfaceView");
-		renderer = new FavoritesRenderer(context, cardsSettings);
+		renderer = new FavoritesRenderer(context);
 		setRenderer(renderer);
 		detector = new GestureDetector(context, new FavoritesDetector(renderer));
 	}

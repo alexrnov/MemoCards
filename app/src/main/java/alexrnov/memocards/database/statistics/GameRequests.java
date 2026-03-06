@@ -1,4 +1,4 @@
-package alexrnov.memocards.statistics;
+package alexrnov.memocards.database.statistics;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ public interface GameRequests {
 	List<GameEntity> getAll();
 
 	@Query("SELECT id FROM GameEntity ORDER BY id DESC LIMIT 1")
-	long getLastUserId();
+	long getLastGameId();
 
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
 	void insert(GameEntity gameEntity);
