@@ -1,9 +1,9 @@
 package alexrnov.memocards.view.statistics
 
+import alexrnov.memocards.Initialization.STATISTICS_DB
 import alexrnov.memocards.R
-import alexrnov.memocards.database.statistics.GameDatabase
+import alexrnov.memocards.database.statistics.StatisticsDatabase
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -21,6 +21,7 @@ class StatisticsActivity : AppCompatActivity() {
 	private lateinit var confirmClearDialog: ConstraintLayout
 	private lateinit var clearButton: Button
 	private lateinit var emptyTextView: TextView
+	private lateinit var headContainer: ConstraintLayout
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -30,27 +31,34 @@ class StatisticsActivity : AppCompatActivity() {
 		val toolbar = findViewById<MaterialToolbar>(R.id.statisticsAppBar)
 		setSupportActionBar(toolbar)
 
+		supportActionBar?.let {
+			it.setDisplayHomeAsUpEnabled(true)
+			it.setDisplayShowHomeEnabled(true)
+		}
+
 		ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.statisticsContainer)) { v, insets ->
 			val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
 			v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
 			insets
 		}
 
-		val db: GameDatabase = Room.databaseBuilder(
+		val db: StatisticsDatabase = Room.databaseBuilder(
 			application.applicationContext,
-			GameDatabase::class.java, "database_17"
+			StatisticsDatabase::class.java, STATISTICS_DB
 		).allowMainThreadQueries().build()
 
 		val countGames = db.requests().countGames
 
 		confirmClearDialog = findViewById(R.id.clearDialogBackground)
+		headContainer = findViewById(R.id.headContainer)
 		clearButton = findViewById(R.id.clearStatisticsButton)
 		emptyTextView = findViewById(R.id.emptyTextView)
 
 		if (countGames < 1) {
 			clearButton.isEnabled = false
-			clearButton.backgroundTintList = ColorStateList.valueOf(Color.LTGRAY)
+			clearButton.backgroundTintList = ColorStateList.valueOf(getColor(R.color.disable_button))
 			emptyTextView.visibility = View.VISIBLE
+			headContainer.visibility = View.GONE
 		}
 	}
 
@@ -78,14 +86,15 @@ class StatisticsActivity : AppCompatActivity() {
 		statisticsViewModel.clearData()
 
 		clearButton.isEnabled = false
-		clearButton.backgroundTintList = ColorStateList.valueOf(Color.LTGRAY)
+		clearButton.backgroundTintList = ColorStateList.valueOf(getColor(R.color.disable_button))
 
+		headContainer.visibility = View.GONE
 		confirmClearDialog.visibility = View.GONE
 		emptyTextView.visibility = View.VISIBLE
 
-		val db: GameDatabase = Room.databaseBuilder(
+		val db: StatisticsDatabase = Room.databaseBuilder(
 			application.applicationContext,
-			GameDatabase::class.java, "database_17"
+			StatisticsDatabase::class.java, STATISTICS_DB
 		).allowMainThreadQueries().build()
 
 		val requests = db.requests()

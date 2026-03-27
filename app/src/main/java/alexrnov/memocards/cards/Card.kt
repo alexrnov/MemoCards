@@ -38,9 +38,9 @@ data class Card(
 
 	fun isRotationProcess(): Boolean = front.isRotationProcess
 
-	fun rotate(delta: Float) {
-		front.rotate(delta, 0.0f, -0.5f, 0.0f)
-		back.rotate(delta, 0.0f, -0.5f, 0.0f)
+	fun rotate(delta: Float, k: Float) {
+		front.rotate(delta, 0.0f, -0.5f, 0.0f, k)
+		back.rotate(delta, 0.0f, -0.5f, 0.0f, k)
 	}
 
 	fun openCard() {
@@ -55,6 +55,4 @@ data class Card(
 	fun getVertices(projectionMatrix: FloatArray, widthScreen: Int, heightScreen: Int, scale: Float, modelX: Float, modelY: Float, modelZ: Float): CardVertices {
 		return front.getVertices(projectionMatrix, widthScreen, heightScreen, scale, modelX, modelY, modelZ)
 	}
-
-	fun getTextureId() = front.textureId
 }

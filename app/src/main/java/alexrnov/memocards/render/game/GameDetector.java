@@ -1,18 +1,13 @@
 package alexrnov.memocards.render.game;
 
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import static alexrnov.memocards.Initialization.appStorage;
-import alexrnov.enginegl.commonGL.PositionUtils;
 
 public class GameDetector implements android.view.GestureDetector.OnGestureListener,
         GestureDetector.OnDoubleTapListener {
-    private PositionUtils positionUtils = new PositionUtils();
-    private GameRenderer renderer;
+    private final GameRenderer renderer;
 
     public GameDetector(GameRenderer gameRenderer) {
         renderer = gameRenderer;

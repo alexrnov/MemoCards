@@ -5,15 +5,16 @@ import alexrnov.memocards.Initialization.appStorage
 import alexrnov.memocards.view.activity.GameActivity
 import alexrnov.memocards.cards.Card
 import alexrnov.memocards.cards.CardsCreator
-import alexrnov.memocards.cards.CardsSettings
+import alexrnov.memocards.cards.SceneSettings
 import alexrnov.memocards.cards.setComposition
+import alexrnov.memocards.render.setBackgroundColor
 import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
 import android.os.SystemClock
-import android.util.Log
 import androidx.core.content.edit
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -21,7 +22,7 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.sin
 
-class GameRenderer(private val context: Context, private val cardsSettings: CardsSettings) : GLSurfaceView.Renderer {
+class GameRenderer(private val context: Context, private val sceneSettings: SceneSettings) : GLSurfaceView.Renderer {
 	private var gameActivity: GameActivity? = null
 	private var ky = 0.30f // coefficient for camera rotation
 
@@ -58,27 +59,24 @@ class GameRenderer(private val context: Context, private val cardsSettings: Card
 	var screenHeight: Int = 0
 
 	override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-		Log.i("memo", "onSurfaceCreated")
-
 		val newGame = appStorage.getBoolean("newGame", true)
-		Log.i("memo", "newGame = $newGame")
 		val cardsCreator = CardsCreator()
 		if (newGame) {
 			appStorage.edit { putBoolean("newGame", false) }
-			cards = cardsCreator.createCards(context, scale, cardsSettings)
+			cards = cardsCreator.createCards(context, scale, sceneSettings)
 		} else {
 			cards = cardsCreator.recoveryCards(context, scale)
 		}
 
 		cameraPosition(-350.0f)
 
-		Log.i("memo", "cardPosition")
-		GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
+		val color = sceneSettings.backgroundColor
+		setBackgroundColor(color)
+
 		GLES20.glHint(GLES20.GL_GENERATE_MIPMAP_HINT, GLES20.GL_FASTEST)
 	}
 
 	override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
-		Log.i("memo", "onSurfaceChanged")
 		GLES20.glViewport(0, 0, width, height) // set screen size
 		this.screenWidth = width
 		this.screenHeight = height
@@ -97,11 +95,9 @@ class GameRenderer(private val context: Context, private val cardsSettings: Card
 
 		val secondCardIndex = appStorage.getInt("secondCardIndex", -1)
 		val firstCardIndex = appStorage.getInt("firstCardIndex", -1)
-		Log.i("memo", "firstCardIndex = $firstCardIndex, secondCardIndex = $secondCardIndex")
 		val firstCardId = appStorage.getInt("firstCardId", -1)
 		val openCards = appStorage.getStringSet("openCards", emptySet<String>())
 		openCards?.forEach {
-			Log.i("memo", "openCards = ${it}")
 			cards[it.toInt()]?.openCard()
 		}
 		if (firstCardIndex != -1) { // если открыта первая карта открыть ее при повороте экрана
@@ -114,7 +110,6 @@ class GameRenderer(private val context: Context, private val cardsSettings: Card
 
 	override fun onDrawFrame(gl: GL10?) {
 		delta = meanValue.add(interpolationRatio)
-		//f = f + 1.1f;
 		f = f + delta * 2
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
 		GLES20.glEnable(GLES20.GL_DEPTH_TEST) // enable depth test
@@ -124,7 +119,7 @@ class GameRenderer(private val context: Context, private val cardsSettings: Card
 
 		cards.forEach { index, card ->
 			if (card.isRotationProcess()) {
-				card.rotate(delta)
+				card.rotate(delta, sceneSettings.rotationSpeed)
 			}
 			card.draw(viewMatrix, projectionMatrix)
 		}
@@ -182,11 +177,11 @@ class GameRenderer(private val context: Context, private val cardsSettings: Card
 		}
 	}
 
+	@OptIn(DelicateCoroutinesApi::class)
 	private fun rotateSecondCard(firstCardId: Int, firstCardIndex: Int, secondCardIndex: Int) {
 		val secondCard = cards[secondCardIndex]?: return
 
 		secondCard.setRotationProcess(true) {
-			Log.i("memo", "firstCardId = $firstCardId, secondCard = ${cards[secondCardIndex]!!.id}")
 			if (firstCardId == secondCard.id) { // если вторая карточка совпала с первой - оставить их открытыми
 				val currentOpenCards = mutableSetOf(firstCardIndex.toString(), secondCardIndex.toString())
 				val openCards = appStorage.getStringSet("openCards", emptySet<String>())
@@ -198,8 +193,6 @@ class GameRenderer(private val context: Context, private val cardsSettings: Card
 				val errors = appStorage.getInt("errors", 0)
 				if (currentOpenCards.size == cardsQuantity) {
 					GlobalScope.launch(Dispatchers.Main) {
-						//delay(1000L)
-
 						gameActivity?.finishGame(errors)
 					}
 				}
@@ -207,7 +200,6 @@ class GameRenderer(private val context: Context, private val cardsSettings: Card
 				cards[firstCardIndex]?.setRotationProcess(true)
 				secondCard.setRotationProcess(true)
 				val errors = appStorage.getInt("errors", 0) + 1
-				Log.i("memo", "errors = $errors")
 				appStorage.edit {
 					putInt("errors", errors)
 				}
@@ -220,16 +212,15 @@ class GameRenderer(private val context: Context, private val cardsSettings: Card
 		}
 	}
 
+	@OptIn(DelicateCoroutinesApi::class)
 	@Synchronized
 	fun addCardToFavorites(x: Float, y: Float) {
-		val (index, card) = getSelectCard(x, y)
-
 		val openCards = appStorage.getStringSet("openCards", emptySet())
-
 		if (openCards == null) {
 			return
 		}
 
+		val (index, _) = getSelectCard(x, y)
 		if (openCards.contains(index.toString())) {
 			val cards = appStorage.getStringSet("cards", emptySet())
 			val card = cards?.firstOrNull {
@@ -300,15 +291,14 @@ class GameRenderer(private val context: Context, private val cardsSettings: Card
 				cameraPosition(0f)
 			}
 		}
-		Log.i("memo", "zCamera = " + zCamera)
 	}
 
 	private fun cardsByScreen(cardsQuantity: Int, isPortrait: Boolean): Pair<Float, Float> {
 		return when (cardsQuantity) {
 			12 -> if (isPortrait) Pair(3f, 4.5f) else Pair(6.5f, 2.3f)
-			16 -> if (isPortrait) Pair(4.5f, 4.5f) else Pair(8.0f, 2.3f)
-			20 -> if (isPortrait) Pair(4.5f, 4.5f) else Pair(11.2f, 2.3f)
-			30 -> if (isPortrait) Pair(5.5f, 6.0f) else Pair(11.2f, 3.4f)
+			16 -> if (isPortrait) Pair(4.5f, 4.5f) else Pair(8.5f, 2.3f)
+			20 -> if (isPortrait) Pair(4.5f, 5.5f) else Pair(11.2f, 2.3f)
+			30 -> if (isPortrait) Pair(5.5f, 6.5f) else Pair(11.2f, 3.4f)
 			else -> if (isPortrait) Pair(3f, 4.5f) else Pair(6.5f, 2.3f)
 		}
 	}
