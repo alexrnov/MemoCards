@@ -4,7 +4,6 @@ import alexrnov.enginegl.Textures
 import alexrnov.memocards.Initialization.appStorage
 import alexrnov.memocards.enginegl.Object3D
 import android.content.Context
-import android.util.Log
 import androidx.core.content.edit
 import kotlin.Int
 import kotlin.random.Random
@@ -13,42 +12,35 @@ class CardsCreator {
 	private val cardQuality: Int get() = appStorage.getInt("cardsQuantity", 12)
 	private val cardPairs: Int get() = cardQuality / 2
 
-	fun createCards(context: Context, scale: Float, cardsSettings: CardsSettings): Map<Int, Card> {
-		val frontPictures = frontPictures(cardsSettings)
+	fun createCards(context: Context, scale: Float, sceneSettings: SceneSettings): Map<Int, Card> {
+		val frontPictures = frontPictures(sceneSettings)
 
-		val cardsAsPaths = if (cardsSettings.material == "pattern"
-				|| cardsSettings.material == "plastic") {
-			val backPicture = getBackPicture(cardsSettings)
+		val cardsAsPaths = if (sceneSettings.material == "pattern"
+				|| sceneSettings.material == "plastic") {
+			val backPicture = getBackPicture(sceneSettings)
 			getCardsWithOneBackground(frontPictures, backPicture)
 		} else {
-			val backPictures = getBackPictures(cardsSettings)
+			val backPictures = getBackPictures(sceneSettings)
 			getCardsWithDifferentBackground(frontPictures, backPictures)
 		}
 
-		/*
-		cardsAsPaths.forEach {
-			println("card = $it")
-		}
-
-
-		 */
 		appStorage.edit { putStringSet("cards", cardsAsPaths) }
 
-		val cardsWithTextures = getCardsWithTextures(context, cardsAsPaths, scale)
+		val (cardsWithTextures, _) = getCardsWithTextures(context, cardsAsPaths, scale)
 		return cardsWithTextures
 	}
 
 	fun recoveryCards(context: Context, scale: Float): Map<Int, Card> {
 		val cards = appStorage.getStringSet("cards", emptySet())
 		cards?.let {
-			val cardsWithTextures = getCardsWithTextures(context, it, scale)
+			val (cardsWithTextures, _) = getCardsWithTextures(context, it, scale)
 			return cardsWithTextures
 		}
 		return emptyMap()
 	}
 
-	private fun frontPictures(cardsSettings: CardsSettings): List<String> {
-		val frontCardsSize = cardsSettings.frontCardsSize
+	private fun frontPictures(sceneSettings: SceneSettings): List<String> {
+		val frontCardsSize = sceneSettings.frontCardsSize
 		val frontNumbers = (1..frontCardsSize).shuffled(Random.Default).take(cardPairs)
 		val frontPictures: MutableList<String> = mutableListOf()
 		(0..cardPairs - 1).forEach {
@@ -57,9 +49,9 @@ class CardsCreator {
 		return frontPictures
 	}
 
-	private fun getBackPicture(cardsSettings: CardsSettings): String {
-		val material = cardsSettings.material
-		val backCardsSize = cardsSettings.backCardsSize
+	private fun getBackPicture(sceneSettings: SceneSettings): String {
+		val material = sceneSettings.material
+		val backCardsSize = sceneSettings.backCardsSize
 		val backNumber = (1..backCardsSize).random()
 		return "back/$material/${backNumber}.jpg"
 	}
@@ -79,9 +71,9 @@ class CardsCreator {
 			.toSet()
 	}
 
-	private fun getBackPictures(cardsSettings: CardsSettings): ArrayDeque<String> {
-		val backCardsSize = cardsSettings.backCardsSize
-		val material = cardsSettings.material
+	private fun getBackPictures(sceneSettings: SceneSettings): ArrayDeque<String> {
+		val backCardsSize = sceneSettings.backCardsSize
+		val material = sceneSettings.material
 		val backNumbers = (1..backCardsSize).shuffled(Random.Default).take(cardQuality)
 		val backPictures = ArrayDeque<String>()
 		(0..backNumbers.size - 1).forEach {
@@ -109,18 +101,21 @@ class CardsCreator {
 		context: Context,
 		cardsWithPaths: Set<String>,
 		scale: Float
-	): Map<Int, Card> {
+	): Pair<Map<Int, Card>, IntArray> {
 		val cardsWithTextures: MutableMap<Int, Card> = mutableMapOf()
 
+		val textureIds = mutableListOf<Int>()
 		cardsWithPaths.forEach { card ->
 			val cardData = card.split(":")
-			Log.i("memo", "create card = $card")
 			val frontTextureId = Textures.loadTextureWithMipMapFromAsset(context, cardData[2])
 			val firstBackTextureId = Textures.loadTextureWithMipMapFromAsset(context, cardData[3])
+			textureIds.add(frontTextureId)
+			textureIds.add(firstBackTextureId)
+
 			val card = createCard(context, cardData[1].toInt(), frontTextureId, firstBackTextureId, scale, cardData[2])
 			cardsWithTextures.put(cardData[0].toInt(), card)
 		}
-		return cardsWithTextures
+		return Pair(cardsWithTextures, textureIds.toIntArray())
 	}
 
 	private fun createCard(context: Context, id: Int, pic: Int, backPic: Int, scale: Float, frontPath: String): Card {
@@ -135,26 +130,20 @@ class CardsCreator {
 	/**
 	 * Создать карты на основе данных БД (избранные карты)
 	 */
-	fun createCardsFromDB(context: Context, scale: Float, frontPaths: List<String>): Map<Int, Card> {
+	fun createCardsFromDB(context: Context, scale: Float, frontPaths: List<String>): Pair<Map<Int, Card>, IntArray> {
 		val cardsAsPaths = getCardsFromDB(frontPaths)
-
-		cardsAsPaths.forEach {
-			println("favorite card = $it")
-		}
-
-		val cardsWithTextures = getCardsWithTextures(context, cardsAsPaths, scale)
-		return cardsWithTextures
+		val (cardsWithTextures, texturesIds) = getCardsWithTextures(context, cardsAsPaths, scale)
+		return Pair(cardsWithTextures, texturesIds)
 	}
 
 	private fun getCardsFromDB(frontPictures: List<String>, ): Set<String> {
-		val backPicture = "back/pattern/1.jpg"
 		val emptyPicture = "empty/1.jpg"
 		val cardsWithPaths: MutableList<String> = mutableListOf()
-		for (i in 0..11) {
+		for (i in 0..5) {
 			if (i < frontPictures.size) {
-				cardsWithPaths.add("${i}:${frontPictures[i]}:$backPicture")
+				cardsWithPaths.add("${i}:${frontPictures[i]}:$emptyPicture")
 			} else {
-				cardsWithPaths.add("${i}:$emptyPicture:$backPicture")
+				cardsWithPaths.add("${i}:$emptyPicture:$emptyPicture")
 			}
 		}
 		return cardsWithPaths
@@ -162,15 +151,10 @@ class CardsCreator {
 			.toSet()
 	}
 
-	fun createLargeCardsFromDB(context: Context, scale: Float, frontPaths: List<String>): Map<Int, Card> {
+	fun createLargeCardsFromDB(context: Context, scale: Float, frontPaths: List<String>): Pair<Map<Int, Card>, IntArray> {
 		val cardsAsPaths = getLargeCardsFromDB(frontPaths)
-
-		cardsAsPaths.forEach {
-			println("large favorite card = $it")
-		}
-
-		val cardsWithTextures = getCardsWithTextures(context, cardsAsPaths, scale)
-		return cardsWithTextures
+		val (cardsWithTextures, textureIds) = getCardsWithTextures(context, cardsAsPaths, scale)
+		return Pair(cardsWithTextures, textureIds)
 	}
 
 	private fun getLargeCardsFromDB(frontPictures: List<String>, ): Set<String> {

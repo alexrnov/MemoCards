@@ -9,29 +9,29 @@ import androidx.room.Query;
 import androidx.room.Transaction;
 
 @Dao
-public interface GameRequests {
-	@Query("SELECT COUNT(*) FROM GameEntity")
+public interface StatisticsRequests {
+	@Query("SELECT COUNT(*) FROM StatisticsEntity")
 	int getCountGames();
 
-	@Query("SELECT * FROM GameEntity")
-	List<GameEntity> getAll();
+	@Query("SELECT * FROM StatisticsEntity")
+	List<StatisticsEntity> getAll();
 
-	@Query("SELECT id FROM GameEntity ORDER BY id DESC LIMIT 1")
+	@Query("SELECT id FROM StatisticsEntity ORDER BY id DESC LIMIT 1")
 	long getLastGameId();
 
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
-	void insert(GameEntity gameEntity);
+	void insert(StatisticsEntity statisticsEntity);
 
-	@Query("DELETE FROM GameEntity")
+	@Query("DELETE FROM StatisticsEntity")
 	void deleteAllEntities();
 
 	@Transaction
-	default void insertWithLimit(GameEntity gameEntity) {
-		insert(gameEntity);
+	default void insertWithLimit(StatisticsEntity statisticsEntity) {
+		insert(statisticsEntity);
 		deleteOldest(); // оставляет только последние n-записей
 	}
 
 	// вставить в таблицу новую запись и если превышено количество записей, то удалить самую старую
-	@Query("DELETE FROM GameEntity WHERE id NOT IN (SELECT id FROM GameEntity ORDER BY id DESC LIMIT 1000)")
+	@Query("DELETE FROM StatisticsEntity WHERE id NOT IN (SELECT id FROM StatisticsEntity ORDER BY id DESC LIMIT 1000)")
 	void deleteOldest();
 }

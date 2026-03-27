@@ -1,7 +1,7 @@
 package alexrnov.memocards.view.statistics
 
 import alexrnov.memocards.R
-import alexrnov.memocards.database.statistics.GameEntity
+import alexrnov.memocards.database.statistics.StatisticsEntity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -36,11 +36,11 @@ class StatisticsFragment : Fragment() {
 }
 
 class StatisticsAdapter :
-	ListAdapter<GameEntity, StatisticsViewHolder>(object : DiffUtil.ItemCallback<GameEntity>() {
-		override fun areItemsTheSame(oldItem: GameEntity, newItem: GameEntity): Boolean =
+	ListAdapter<StatisticsEntity, StatisticsViewHolder>(object : DiffUtil.ItemCallback<StatisticsEntity>() {
+		override fun areItemsTheSame(oldItem: StatisticsEntity, newItem: StatisticsEntity): Boolean =
 			oldItem == newItem
 
-		override fun areContentsTheSame(oldItem: GameEntity, newItem: GameEntity): Boolean =
+		override fun areContentsTheSame(oldItem: StatisticsEntity, newItem: StatisticsEntity): Boolean =
 			oldItem == newItem
 	}) {
 

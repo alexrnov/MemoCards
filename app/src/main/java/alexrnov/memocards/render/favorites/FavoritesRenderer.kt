@@ -1,5 +1,6 @@
 package alexrnov.memocards.render.favorites
 
+import alexrnov.memocards.Initialization.FAVORITES_DB
 import alexrnov.memocards.Initialization.appStorage
 import alexrnov.memocards.view.activity.FavoritesActivity
 import alexrnov.memocards.cards.Card
@@ -7,16 +8,13 @@ import alexrnov.memocards.cards.CardsCreator
 import alexrnov.memocards.cards.setComposition
 import alexrnov.memocards.cards.setCompositionForLargeCards
 import alexrnov.memocards.database.favorites.FavoritesDatabase
+import alexrnov.memocards.render.setBackgroundColor
 import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
-import android.util.Log
 import androidx.core.content.edit
 import androidx.room.Room.databaseBuilder
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.sin
@@ -45,25 +43,30 @@ class FavoritesRenderer(private val context: Context) : GLSurfaceView.Renderer {
 
 	private var isPortrait = true
 
+	private lateinit var textureIds: IntArray
+	private lateinit var largeTextureIds: IntArray
+
 	private lateinit var favoritesDatabase: FavoritesDatabase
 
 	override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-		Log.i("memo", "onSurfaceCreated")
-
 		favoritesDatabase = databaseBuilder(
 			context,
-			FavoritesDatabase::class.java, "database_18"
+			FavoritesDatabase::class.java, FAVORITES_DB
 		).allowMainThreadQueries().build()
+
 		val requests = favoritesDatabase.requests()
 		val favorites = requests.all
-		favorites.forEach {
-			Log.i("memo", "render card, id = ${it.id}, path = ${it.path}")
-		}
 		val favoritesPaths = favorites.mapNotNull { it.path }
 		val cardsCreator = CardsCreator()
-		cards = cardsCreator.createCardsFromDB(context, scale, favoritesPaths)
 
-		largeCards = cardsCreator.createLargeCardsFromDB(context, scale * 1.7f, favoritesPaths)
+		val (cardsFromDB, textures) = cardsCreator.createCardsFromDB(context, scale, favoritesPaths)
+		cards = cardsFromDB
+		textureIds = textures
+
+		val (largeCardsFromDB, largeTextures) = cardsCreator.createLargeCardsFromDB(context, scale * 1.7f, favoritesPaths)
+		largeCards = largeCardsFromDB
+		largeTextureIds = largeTextures
+
 		cameraPosition(-350.0f)
 
 		val largeCardIndex = appStorage.getInt("largeCardIndex", -1)
@@ -71,13 +74,14 @@ class FavoritesRenderer(private val context: Context) : GLSurfaceView.Renderer {
 			largeCard = largeCards[largeCardIndex]
 		}
 
-		GLES20.glClearColor(0.5f, 0.5f, 0.5f, 0.0f)
+		val color = appStorage.getString("backgroundColor", "black") ?: "black"
+		setBackgroundColor(color)
+
 		GLES20.glHint(GLES20.GL_GENERATE_MIPMAP_HINT, GLES20.GL_FASTEST)
 	}
 
 	override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
 		isPortrait = width < height
-		Log.i("memo", "onSurfaceChanged")
 		GLES20.glViewport(0, 0, width, height) // set screen size
 		this.screenWidth = width
 		this.screenHeight = height
@@ -94,39 +98,35 @@ class FavoritesRenderer(private val context: Context) : GLSurfaceView.Renderer {
 		calibrateCamera(width, height)
 		setComposition(cards, portrait = isPortrait)
 		setCompositionForLargeCards(largeCards, portrait = isPortrait)
-		cards.forEach { card ->
-			card.value.openCard()
-		}
-		largeCards.forEach { card ->
-			card.value.openCard()
-		}
+		openCards()
 	}
 
 	override fun onDrawFrame(gl: GL10?) {
 		if (reset) {
-			reset = false
-
 			val requests = favoritesDatabase.requests()
-
 			val favorites = requests.all
-			favorites.forEach {
-				Log.i("memo", "id = ${it.id}, path = ${it.path}")
-			}
+
+			GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+			GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+
+			// удалить ранее созданные текстуры
+			GLES20.glDeleteTextures(textureIds.size, textureIds, 0)
+			// удалить ранее созданные текстуры для больших карточек
+			GLES20.glDeleteTextures(largeTextureIds.size, largeTextureIds, 0)
+
 			val favoritesPaths = favorites.mapNotNull { it.path }
 			val cardsCreator = CardsCreator()
-			cards = cardsCreator.createCardsFromDB(context, scale, favoritesPaths)
+
+			val (cardsFromDB, _) = cardsCreator.createCardsFromDB(context, scale, favoritesPaths)
+			cards = cardsFromDB
+
+			val (largeCardsFromDB, _) = cardsCreator.createLargeCardsFromDB(context, scale * 1.7f, favoritesPaths)
+			largeCards = largeCardsFromDB
 
 			setComposition(cards, portrait = isPortrait)
 			setCompositionForLargeCards(largeCards, portrait = isPortrait)
-			cards.forEach { card ->
-				card.value.openCard()
-			}
-		}
-
-		if (largeCard != null) {
-			//setCompositionForLargeCards(largeCards, portrait = isPortrait)
-			largeCard?.openCard()
-			//largeCard = null
+			openCards()
+			reset = false
 		}
 
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
@@ -147,27 +147,24 @@ class FavoritesRenderer(private val context: Context) : GLSurfaceView.Renderer {
 		if ((!(ky < -0.5) || !(yDistance < 0.0)) && (!(ky > 0.5) || !(yDistance >= 0.0))) {
 			ky = ky + yDistance * 0.001f
 		}
-
 		val yCamera = (rotationCameraRadius * sin(ky.toDouble())).toFloat()
-
 		Matrix.setLookAtM(viewMatrix, 0, 0.0f, -yCamera, zCamera, 0f, 0.0f, 0f, 0f, 1.0f, 0.0f)
 	}
 
 	@Synchronized
 	fun openCard(x: Float, y: Float) {
+		if (reset) return
 		if (largeCard != null) {
-			val (index, card) = getSelectLargeCard(x, y)
-			Log.i("memo", "if index = ${index}, index = $index")
-			if (index == null || card == null) {
+			val (index, _) = getSelectLargeCard(x, y)
+			if (index == null) {
 				appStorage.edit {
 					putInt("largeCardIndex", -1)
 				}
 				largeCard = null
 			}
 		} else {
-			val (index, card) = getSelectCard(x, y)
-			Log.i("memo", "else index = ${index}, index = $index")
-			if (index == null || card == null) {
+			val (index, _) = getSelectCard(x, y)
+			if (index == null) {
 				return
 			}
 			if (index < largeCards.size) {
@@ -181,13 +178,11 @@ class FavoritesRenderer(private val context: Context) : GLSurfaceView.Renderer {
 
 	@Synchronized
 	fun removeFavoriteCard(x: Float, y: Float) {
-		val (index, card) = getSelectCard(x, y)
-		Log.i("memo", "index = $index, card = ${card}, card frontPath = ${card?.frontPath}")
-		if (index == null || card == null) {
-			Log.i("memo", "return")
-			return
-		}
-		val path = card.frontPath
+		if (largeCard != null) return
+
+		val (_, card) = getSelectCard(x, y)
+
+		val path = card?.frontPath ?: return
 		if (!path.contains("empty")) {
 			favoritesActivity?.openConfirmRemoveCardDialog(path)
 		}
@@ -235,7 +230,6 @@ class FavoritesRenderer(private val context: Context) : GLSurfaceView.Renderer {
 			if (xPass >= xMin && xPass <= xMax && yPass >= yMin && yPass <= yMax) {
 				index = currentIndex
 				card = currentCard
-				Log.i("memo", "return large card")
 				return@forEach
 			}
 		}
@@ -244,8 +238,7 @@ class FavoritesRenderer(private val context: Context) : GLSurfaceView.Renderer {
 
 	private fun calibrateCamera(screenWidth: Int, screenHeight: Int) {
 		val card = cards.getValue(0)
-		val (cardsByWidth, cardsByHeight) = cardsByScreen(cards.size, screenWidth < screenHeight)
-
+		val (cardsByWidth, cardsByHeight) = if (screenWidth < screenHeight) Pair(3f, 4.5f) else Pair(6.5f, 2.3f)
 		card.position(0.0f, 0.0f, 0.0f, 45.0f)
 		var isScale = false
 		var cardWidth: Float
@@ -266,17 +259,11 @@ class FavoritesRenderer(private val context: Context) : GLSurfaceView.Renderer {
 				cameraPosition(0f)
 			}
 		}
-		Log.i("memo", "zCamera = " + zCamera)
 	}
 
-	private fun cardsByScreen(cardsQuantity: Int, isPortrait: Boolean): Pair<Float, Float> {
-		return when (cardsQuantity) {
-			12 -> if (isPortrait) Pair(3f, 4.5f) else Pair(6.5f, 2.3f)
-			16 -> if (isPortrait) Pair(4.5f, 4.5f) else Pair(8.0f, 2.3f)
-			20 -> if (isPortrait) Pair(4.5f, 4.5f) else Pair(11.2f, 2.3f)
-			30 -> if (isPortrait) Pair(5.5f, 6.0f) else Pair(11.2f, 3.4f)
-			else -> if (isPortrait) Pair(3f, 4.5f) else Pair(6.5f, 2.3f)
-		}
+	private fun openCards() {
+		cards.forEach { it.value.openCard() }
+		largeCards.forEach { it.value.openCard() }
 	}
 
 	fun setFavoritesActivity(favoritesActivity: FavoritesActivity) {

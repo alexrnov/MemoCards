@@ -1,16 +1,17 @@
 package alexrnov.memocards.view.activity
 
+import alexrnov.memocards.Initialization.FAVORITES_DB
+import alexrnov.memocards.Initialization.STATISTICS_DB
 import alexrnov.memocards.Initialization.appStorage
 import alexrnov.memocards.R
-import alexrnov.memocards.cards.CardsSettings
+import alexrnov.memocards.cards.SceneSettings
 import alexrnov.memocards.database.favorites.FavoriteEntity
 import alexrnov.memocards.database.favorites.FavoritesDatabase
 import alexrnov.memocards.render.game.GameSurfaceView
-import alexrnov.memocards.database.statistics.GameDatabase
+import alexrnov.memocards.database.statistics.StatisticsDatabase
 import android.app.ActivityManager
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.OnBackPressedCallback
@@ -20,14 +21,16 @@ import androidx.core.content.edit
 import androidx.databinding.DataBindingUtil
 import androidx.room.Room.databaseBuilder
 import alexrnov.memocards.databinding.ActivityGameBinding
-import alexrnov.memocards.database.statistics.GameEntity
+import alexrnov.memocards.database.statistics.StatisticsEntity
 import alexrnov.memocards.view.activity.FavoritesMessageType.ADDED
 import alexrnov.memocards.view.activity.FavoritesMessageType.ALREADY_ADDED
 import alexrnov.memocards.view.activity.FavoritesMessageType.FULL_LIST
 import alexrnov.memocards.view.binding.ExitDialogData
 import android.graphics.Color
+import android.graphics.Typeface
 import android.view.Gravity
 import android.widget.FrameLayout
+import android.widget.TextView
 import com.google.android.material.snackbar.Snackbar
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -47,11 +50,10 @@ class GameActivity : AppCompatActivity() {
 
         favoritesDatabase = databaseBuilder(
             applicationContext,
-            FavoritesDatabase::class.java, "database_18"
+            FavoritesDatabase::class.java, FAVORITES_DB
         ).allowMainThreadQueries().build()
 
         val frontCardsSize: Int? = getResources().assets.list("front")?.size
-        //val size = getAssets().list("front")?.size
 
         if (frontCardsSize == null) {
             return
@@ -63,14 +65,13 @@ class GameActivity : AppCompatActivity() {
             return
         }
 
-        //Log.i("memo", "frontCardsSize = $frontCardsSize, backCardsNumber = $backCardsSize")
-
-        Log.i("memo", "GameActivity onCreate")
-        val cardsSettings = CardsSettings(
+        val sceneSettings = SceneSettings(
             frontCardsSize = frontCardsSize,
             backCardsSize = backCardsSize,
             material = material,
-            cardsQuantity = appStorage.getInt("cardsQuantity", 12)
+            cardsQuantity = appStorage.getInt("cardsQuantity", 12),
+            rotationSpeed = appStorage.getFloat("rotationSpeed", 10f),
+            backgroundColor = appStorage.getString("backgroundColor", "black") ?: "black"
         )
 
         val binding: ActivityGameBinding = DataBindingUtil.setContentView(this, R.layout.activity_game)
@@ -85,8 +86,8 @@ class GameActivity : AppCompatActivity() {
         } else {
             val errors = appStorage.getInt("errors", 0)
             exitDialogData.update(
-                title = getString(R.string.exit_dialog_title_statistics),
-                dialogText = "${getString(R.string.exit_dialog_text_statistics)} $errors"
+                title = getString(R.string.statistics),
+                dialogText = "${getString(R.string.exit_dialog_text_statistics)} $errors\n${getString(R.string.exit_dialog_text_pause)}"
             )
         }
 
@@ -98,7 +99,6 @@ class GameActivity : AppCompatActivity() {
 
         val newGame = appStorage.getBoolean("newGame", true)
         if (newGame) {
-            Log.i("memo", "set params")
             appStorage.edit {
                 putInt("firstCardId", -1)
                 putInt("firstCardIndex", -1)
@@ -106,11 +106,10 @@ class GameActivity : AppCompatActivity() {
                 putStringSet("openCards", emptySet<String>())
                 putInt("errors", 0)
             }
-        } else {
-            Log.i("memo", "not set params")
         }
+
         gameSurfaceView = findViewById(R.id.oglView)
-        gameSurfaceView.init(applicationContext, cardsSettings)
+        gameSurfaceView.init(applicationContext, sceneSettings)
         gameSurfaceView.setGameActivity(this)
         snackBarContainer = findViewById(R.id.snackBarContainer)
 
@@ -122,34 +121,26 @@ class GameActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
-        Log.i("memo", "GameActivity onResume")
-        val currentValue = appStorage.getString("material", "unknown")
-        Log.i("memo", "onResume, currentValue = $currentValue")
         super.onResume()
     }
 
     override fun onPause() {
-        Log.i("memo", "GameActivity onPause")
         super.onPause()
     }
 
     override fun onStart() {
-        Log.i("memo", "GameActivity onStart")
         super.onStart()
     }
 
     override fun onStop() {
-        Log.i("memo", "GameActivity onStop")
         super.onStop()
     }
 
     override fun onDestroy() {
-        Log.i("memo", "GameActivity onDestroy")
         super.onDestroy()
     }
 
     override fun onRestart() {
-        Log.i("memo", "GameActivity onRestart")
         super.onRestart()
     }
 
@@ -197,10 +188,9 @@ class GameActivity : AppCompatActivity() {
 
     fun addCardToFavorites(path: String): FavoritesMessageType {
         val requests = favoritesDatabase.requests()
-        //requests.deleteAllEntities()
 		return when {
 			requests.isPathExists(path) -> ALREADY_ADDED
-			requests.countFavorites < 12 -> {
+			requests.countFavorites < 6 -> {
 				val lastCardId = requests.lastCardId
 				val favoriteEntity = FavoriteEntity(lastCardId + 1, path)
 				requests.insert(favoriteEntity)
@@ -215,23 +205,18 @@ class GameActivity : AppCompatActivity() {
             putBoolean("gameOver", true)
         }
         exitDialogData.update(
-            title = getString(R.string.exit_dialog_title_statistics),
-            dialogText = "${getString(R.string.exit_dialog_text_statistics)} $errors"
+            title = getString(R.string.statistics),
+            dialogText = "${getString(R.string.exit_dialog_text_statistics)} $errors\n${getString(R.string.exit_dialog_text_pause)}"
         )
         exitDialog?.visibility = View.VISIBLE
-
-
 
         val cardsQuantity = appStorage.getInt("cardsQuantity", 12)
         val openCards = appStorage.getStringSet("openCards", emptySet<String>())
         val errors = appStorage.getInt("errors", 0)
         if (cardsQuantity == openCards?.size) {
-            Log.i("memo", "game success")
-
-
-            val db: GameDatabase = databaseBuilder(
+            val db: StatisticsDatabase = databaseBuilder(
                 applicationContext,
-                GameDatabase::class.java, "database_17"
+                StatisticsDatabase::class.java, STATISTICS_DB
             ).allowMainThreadQueries().build()
 
             val requests = db.requests()
@@ -240,10 +225,9 @@ class GameActivity : AppCompatActivity() {
             val currentTimeString = sdf.format(Date())
 
             val lastGameId = requests.lastGameId
-            val gameEntity = GameEntity(lastGameId + 1, currentTimeString, cardsQuantity, errors)
-            requests.insertWithLimit(gameEntity)
-        } else {
-            Log.i("memo", "game not end")
+            val statisticsEntity =
+                StatisticsEntity(lastGameId + 1, currentTimeString, cardsQuantity, errors)
+            requests.insertWithLimit(statisticsEntity)
         }
     }
 
@@ -252,6 +236,9 @@ class GameActivity : AppCompatActivity() {
 
         val snackBar = Snackbar.make(snackBarContainer, messageText, Snackbar.LENGTH_LONG)
         val snackBarView = snackBar.view
+        val textView = snackBarView.findViewById<TextView>(com.google.android.material.R.id.snackbar_text)
+		textView.textSize = 16F
+        textView.setTypeface(null, Typeface.NORMAL)
 
         val params = snackBarView.layoutParams as FrameLayout.LayoutParams
         params.gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
@@ -259,8 +246,8 @@ class GameActivity : AppCompatActivity() {
         params.setMargins(20, 0, 20, 50) // Отступы: слева, сверху, справа, снизу
         snackBarView.layoutParams = params
 
-        snackBar.setTextColor(Color.argb(255, 255, 255, 95))
-        snackBar.setBackgroundTint(Color.argb(255, 119, 119, 119))
+        snackBar.setTextColor(Color.argb(255, 255, 255, 255))
+        snackBar.setBackgroundTint(Color.argb(255, 114, 172, 194))
         snackBar.show()
     }
 

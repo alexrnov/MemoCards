@@ -1,7 +1,8 @@
 package alexrnov.memocards.view.statistics
 
-import alexrnov.memocards.database.statistics.GameDatabase
-import alexrnov.memocards.database.statistics.GameEntity
+import alexrnov.memocards.Initialization.STATISTICS_DB
+import alexrnov.memocards.database.statistics.StatisticsDatabase
+import alexrnov.memocards.database.statistics.StatisticsEntity
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -16,33 +17,30 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
 	private val sortByCards = MutableLiveData<Boolean>().apply { false }
 	private val sortByErrors = MutableLiveData<Boolean>().apply { false }
 
-	private val _texts = MutableLiveData<List<GameEntity>>().apply {
-
-		val db: GameDatabase = Room.databaseBuilder(
+	private val _texts = MutableLiveData<List<StatisticsEntity>>().apply {
+		val db: StatisticsDatabase = Room.databaseBuilder(
 			application.applicationContext,
-			GameDatabase::class.java, "database_17"
+			StatisticsDatabase::class.java, STATISTICS_DB
 		).allowMainThreadQueries().build()
 
 		val requests = db.requests()
 		value = requests.all
 
-
 		/*
 		// тест большого количества записей
-		val testList = mutableListOf<GameEntity>()
+		val testList = mutableListOf<StatisticsEntity>()
 		(0..15).forEachIndexed { index, it ->
-			testList.add(GameEntity(index.toLong(), "data", 1, index))
+			testList.add(StatisticsEntity(index.toLong(), "data", 1, index))
 		}
 		value = testList
 		*/
 	}
 
-	var texts: LiveData<List<GameEntity>> = _texts
+	var texts: LiveData<List<StatisticsEntity>> = _texts
 
 	fun clearData() {
 		_texts.value = null
 	}
-
 
 	fun sortByDate() {
 		sortByCards.value = false
