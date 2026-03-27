@@ -7,7 +7,8 @@ import alexrnov.memocards.enginegl.Object3D
 data class Card(
 	val id: Int,
 	val front: Object3D,
-	val back: Object3D
+	val back: Object3D,
+	val frontPath: String
 ) {
 	fun position(x: Float, y: Float, z: Float, f: Float) {
 		front.position(x, y, z, f)

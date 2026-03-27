@@ -3,8 +3,10 @@ package alexrnov.memocards.view.activity
 import alexrnov.memocards.Initialization.appStorage
 import alexrnov.memocards.R
 import alexrnov.memocards.cards.CardsSettings
+import alexrnov.memocards.database.favorites.FavoriteEntity
+import alexrnov.memocards.database.favorites.FavoritesDatabase
 import alexrnov.memocards.render.game.GameSurfaceView
-import alexrnov.memocards.statistics.GameDatabase
+import alexrnov.memocards.database.statistics.GameDatabase
 import android.app.ActivityManager
 import android.content.Intent
 import android.os.Bundle
@@ -18,32 +20,35 @@ import androidx.core.content.edit
 import androidx.databinding.DataBindingUtil
 import androidx.room.Room.databaseBuilder
 import alexrnov.memocards.databinding.ActivityGameBinding
-import alexrnov.memocards.statistics.GameEntity
+import alexrnov.memocards.database.statistics.GameEntity
+import alexrnov.memocards.view.activity.FavoritesMessageType.ADDED
+import alexrnov.memocards.view.activity.FavoritesMessageType.ALREADY_ADDED
+import alexrnov.memocards.view.activity.FavoritesMessageType.FULL_LIST
 import alexrnov.memocards.view.binding.ExitDialogData
+import android.graphics.Color
+import android.view.Gravity
+import android.widget.FrameLayout
+import com.google.android.material.snackbar.Snackbar
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 class GameActivity : AppCompatActivity() {
-    private var gameSurfaceView: GameSurfaceView? = null
+    private lateinit var gameSurfaceView: GameSurfaceView
     private var exitDialog: ConstraintLayout? = null
 
+    private lateinit var snackBarContainer: ConstraintLayout
     private var exitDialogData = ExitDialogData()
+
+    private lateinit var favoritesDatabase: FavoritesDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val db: GameDatabase = databaseBuilder(
+        favoritesDatabase = databaseBuilder(
             applicationContext,
-            GameDatabase::class.java, "database_17"
+            FavoritesDatabase::class.java, "database_18"
         ).allowMainThreadQueries().build()
-
-        val requests = db.requests()
-
-        Log.i("memo", "size room = " + requests.all.size)
-        requests.all.forEach {
-            Log.i("memo", "${it.id}, ${it.date}, ${it.cardsQuantity}, ${it.errors}")
-        }
 
         val frontCardsSize: Int? = getResources().assets.list("front")?.size
         //val size = getAssets().list("front")?.size
@@ -105,8 +110,9 @@ class GameActivity : AppCompatActivity() {
             Log.i("memo", "not set params")
         }
         gameSurfaceView = findViewById(R.id.oglView)
-        gameSurfaceView?.init(applicationContext, cardsSettings)
-        gameSurfaceView?.setGameActivity(this)
+        gameSurfaceView.init(applicationContext, cardsSettings)
+        gameSurfaceView.setGameActivity(this)
+        snackBarContainer = findViewById(R.id.snackBarContainer)
 
         exitDialog = findViewById(R.id.exitDialogBackground)
         onBackPressedDispatcher.addCallback(this, callback)
@@ -168,8 +174,8 @@ class GameActivity : AppCompatActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putBoolean("exitDialogVisibility", exitDialog?.visibility == View.VISIBLE)
         super.onSaveInstanceState(outState)
+        outState.putBoolean("exitDialogVisibility", exitDialog?.visibility == View.VISIBLE)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -187,6 +193,21 @@ class GameActivity : AppCompatActivity() {
 
     fun backToGame(view: View) {
         exitDialog?.visibility = View.GONE
+    }
+
+    fun addCardToFavorites(path: String): FavoritesMessageType {
+        val requests = favoritesDatabase.requests()
+        //requests.deleteAllEntities()
+		return when {
+			requests.isPathExists(path) -> ALREADY_ADDED
+			requests.countFavorites < 12 -> {
+				val lastCardId = requests.lastCardId
+				val favoriteEntity = FavoriteEntity(lastCardId + 1, path)
+				requests.insert(favoriteEntity)
+				ADDED
+			}
+			else -> FULL_LIST
+		}
     }
 
     fun finishGame(errors: Int) {
@@ -218,12 +239,40 @@ class GameActivity : AppCompatActivity() {
             val sdf = SimpleDateFormat("yyyy.MM.dd, HH:mm", Locale.getDefault())
             val currentTimeString = sdf.format(Date())
 
-            val lastUserId = requests.lastUserId
-
-            val gameEntity = GameEntity(lastUserId + 1, currentTimeString, cardsQuantity, errors)
+            val lastGameId = requests.lastGameId
+            val gameEntity = GameEntity(lastGameId + 1, currentTimeString, cardsQuantity, errors)
             requests.insertWithLimit(gameEntity)
         } else {
             Log.i("memo", "game not end")
         }
     }
+
+    fun showSnackBar(messageType: FavoritesMessageType) {
+        val messageText = getMessageText(messageType)
+
+        val snackBar = Snackbar.make(snackBarContainer, messageText, Snackbar.LENGTH_LONG)
+        val snackBarView = snackBar.view
+
+        val params = snackBarView.layoutParams as FrameLayout.LayoutParams
+        params.gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+        params.width = FrameLayout.LayoutParams.WRAP_CONTENT // Или фиксированная ширина, например, 800
+        params.setMargins(20, 0, 20, 50) // Отступы: слева, сверху, справа, снизу
+        snackBarView.layoutParams = params
+
+        snackBar.setTextColor(Color.argb(255, 255, 255, 95))
+        snackBar.setBackgroundTint(Color.argb(255, 119, 119, 119))
+        snackBar.show()
+    }
+
+    private fun getMessageText(messageType: FavoritesMessageType) = when (messageType) {
+        ADDED -> getString(R.string.add_card_to_favorites_text)
+        ALREADY_ADDED -> getString(R.string.card_is_already_in_favorites_text)
+        FULL_LIST -> getString(R.string.full_favorites_list)
+    }
+}
+
+enum class FavoritesMessageType {
+    ADDED,
+    ALREADY_ADDED,
+    FULL_LIST
 }

@@ -1,4 +1,4 @@
-package alexrnov.memocards.statistics;
+package alexrnov.memocards.database.statistics;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;

@@ -1,7 +1,7 @@
 package alexrnov.memocards.view.statistics
 
 import alexrnov.memocards.R
-import alexrnov.memocards.statistics.GameEntity
+import alexrnov.memocards.database.statistics.GameEntity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View

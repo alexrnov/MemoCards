@@ -7,7 +7,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import alexrnov.enginegl.commonGL.PositionUtils;
-import alexrnov.memocards.render.game.GameRenderer;
 
 public class FavoritesDetector implements android.view.GestureDetector.OnGestureListener,
 		GestureDetector.OnDoubleTapListener {
@@ -20,7 +19,6 @@ public class FavoritesDetector implements android.view.GestureDetector.OnGesture
 
 	@Override
 	public boolean onDown(@NonNull MotionEvent e) {
-		renderer.openCard(e.getX(), e.getY());
 		return true;
 	}
 
@@ -31,7 +29,7 @@ public class FavoritesDetector implements android.view.GestureDetector.OnGesture
 
 	@Override
 	public void onLongPress(@NonNull MotionEvent e) {
-
+		renderer.removeFavoriteCard(e.getX(), e.getY());
 	}
 
 	@Override
@@ -46,12 +44,13 @@ public class FavoritesDetector implements android.view.GestureDetector.OnGesture
 
 	@Override
 	public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
+		renderer.openCard(e.getX(), e.getY());
 		return false;
 	}
 
 	@Override
 	public boolean onScroll(@Nullable MotionEvent e1, @NonNull MotionEvent e2, float distanceX, float distanceY) {
-		renderer.cameraPosition(distanceY); // camera rotation
+		//renderer.cameraPosition(distanceY); // camera rotation
 		return true;
 	}
 

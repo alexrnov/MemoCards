@@ -1,5 +1,6 @@
 package alexrnov.memocards.render.game;
 
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
@@ -30,7 +31,7 @@ public class GameDetector implements android.view.GestureDetector.OnGestureListe
 
     @Override
     public void onLongPress(@NonNull MotionEvent e) {
-
+        renderer.addCardToFavorites(e.getX(), e.getY());
     }
 
     @Override

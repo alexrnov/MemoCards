@@ -14,8 +14,10 @@ import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import alexrnov.memocards.statistics.GameDatabase;
-import alexrnov.memocards.statistics.GameRequests;
+import alexrnov.memocards.database.favorites.FavoritesDatabase;
+import alexrnov.memocards.database.favorites.FavoritesRequests;
+import alexrnov.memocards.database.statistics.GameDatabase;
+import alexrnov.memocards.database.statistics.GameRequests;
 
 public class Initialization extends Application {
 	public static SharedPreferences appStorage;
@@ -29,17 +31,35 @@ public class Initialization extends Application {
 		Log.i("memo", "init sp");
 
 		AsyncTask.execute(() -> {
-			GameDatabase db = Room.databaseBuilder(this.getApplicationContext(), GameDatabase.class, "database_17").addCallback(dbCallback).build();
+			GameDatabase db = Room.databaseBuilder(this.getApplicationContext(), GameDatabase.class, "database_17").addCallback(dbCallbackStatistics).build();
 			GameRequests dao = db.requests();
+			int size = dao.getAll().size(); // фактически база будет создана при этой инструкции
+		});
+
+		AsyncTask.execute(() -> {
+			FavoritesDatabase db = Room.databaseBuilder(this.getApplicationContext(), FavoritesDatabase.class, "database_18").addCallback(dbCallbackFavorites).build();
+			FavoritesRequests dao = db.requests();
 			int size = dao.getAll().size(); // фактически база будет создана при этой инструкции
 		});
 	}
 
-	RoomDatabase.Callback dbCallback = new RoomDatabase.Callback() {
+	RoomDatabase.Callback dbCallbackStatistics = new RoomDatabase.Callback() {
 		/** метод вызывается при создании базы данных */
 		public void onCreate(@NonNull SupportSQLiteDatabase db) {
 			try (ScheduledExecutorService ignored = Executors.newSingleThreadScheduledExecutor()) {
-				Log.i("memo", "CREATE DATABASE");
+				Log.i("memo", "CREATE DATABASE STATISTICS");
+			} catch (Exception e) {
+				Log.i("memo", Objects.requireNonNull(e.getMessage()));
+			}
+		}
+
+	};
+
+	RoomDatabase.Callback dbCallbackFavorites = new RoomDatabase.Callback() {
+		/** метод вызывается при создании базы данных */
+		public void onCreate(@NonNull SupportSQLiteDatabase db) {
+			try (ScheduledExecutorService ignored = Executors.newSingleThreadScheduledExecutor()) {
+				Log.i("memo", "CREATE DATABASE FAVORITES");
 			} catch (Exception e) {
 				Log.i("memo", Objects.requireNonNull(e.getMessage()));
 			}
