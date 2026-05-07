@@ -4,7 +4,8 @@ Last updated: [May 7, 2026]
 
 This Privacy Policy describes how "Fantasy Memo" (the "Application") processes user information.
 
-**Data Collection**
+**1. Data Collection**
+
 The Application does not collect, store, or transfer to third parties any personal or confidential information about the user, including personal data (names, email addresses, phone numbers, location, contacts).
 
 2. Permissions
