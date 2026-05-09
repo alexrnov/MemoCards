@@ -1,6 +1,6 @@
 *Privacy Policy*
 
-*Last updated: [May 7, 2026]*
+*Last updated: [May 9, 2026]*
 
 *This Privacy Policy describes how "Fantasy Memo" (the "Application") processes user information.*
 
