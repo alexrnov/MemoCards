@@ -13,23 +13,24 @@
         app:layout_constraintWidth_percent="0.4"
         android:layout_height="40dp"
         android:orientation="horizontal"
-        android:background="#EEFFE4"
+        android:background="@color/statistics_date_item"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/titleCardsContainer"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
+
         <TextView
             android:id="@+id/statisticsDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:layout_marginBottom="1dp"
-            android:textColor="@color/statistics_item_text"
+            android:textColor="@color/description_text"
+            android:typeface="sans"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            />
+            app:layout_constraintBottom_toBottomOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -38,7 +39,7 @@
         app:layout_constraintWidth_percent="0.3"
         android:layout_height="40dp"
         android:orientation="horizontal"
-        android:background="#DFFEFF"
+        android:background="@color/statistics_cards_item"
         app:layout_constraintStart_toEndOf="@+id/titleDateContainer"
         app:layout_constraintEnd_toStartOf="@+id/titleErrorsContainer"
         app:layout_constraintTop_toTopOf="parent"
@@ -48,7 +49,8 @@
             android:id="@+id/statisticsCards"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/statistics_item_text"
+            android:textColor="@color/description_text"
+            android:typeface="sans"
             android:gravity="center"
             android:layout_marginBottom="1dp"
             app:layout_constraintStart_toStartOf="parent"
@@ -63,16 +65,18 @@
         app:layout_constraintWidth_percent="0.3"
         android:layout_height="40dp"
         android:orientation="horizontal"
-        android:background="#FFF8E0"
+        android:background="@color/statistics_errors_item"
         app:layout_constraintStart_toEndOf="@+id/titleCardsContainer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
+
         <TextView
             android:id="@+id/statisticsErrors"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/statistics_item_text"
+            android:textColor="@color/description_text"
+            android:typeface="sans"
             android:gravity="center"
             android:layout_marginBottom="1dp"
             app:layout_constraintStart_toStartOf="parent"
@@ -85,9 +89,8 @@
         android:id="@+id/divider"
         android:layout_width="0dp"
         android:layout_height="1dp"
-        android:background="#C0C0C0"
+        android:background="@color/table_divider"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

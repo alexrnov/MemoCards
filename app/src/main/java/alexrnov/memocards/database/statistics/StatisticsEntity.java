@@ -5,7 +5,7 @@ import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 @Entity
-public class GameEntity {
+public class StatisticsEntity {
 	@PrimaryKey
 	public long id;
 
@@ -18,7 +18,7 @@ public class GameEntity {
 	@ColumnInfo(name = "errors")
 	public int errors;
 
-	public GameEntity(long id, String date, int cardsQuantity, int errors) {
+	public StatisticsEntity(long id, String date, int cardsQuantity, int errors) {
 		this.id = id;
 		this.date = date;
 		this.cardsQuantity = cardsQuantity;
@@ -31,7 +31,7 @@ public class GameEntity {
 		if (otherObject == null) return false;
 		if (getClass() != otherObject.getClass()) return false;
 
-		GameEntity otherGame = (GameEntity) otherObject;
+		StatisticsEntity otherGame = (StatisticsEntity) otherObject;
 
 		return (id == otherGame.id)
 			&& (date.equals(otherGame.date)
