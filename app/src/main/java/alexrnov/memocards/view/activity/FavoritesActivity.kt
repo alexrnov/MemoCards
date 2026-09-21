@@ -1,5 +1,6 @@
 package alexrnov.memocards.view.activity
 
+import alexrnov.memocards.Initialization.FAVORITES_DB
 import alexrnov.memocards.R
 import alexrnov.memocards.database.favorites.FavoritesDatabase
 import alexrnov.memocards.render.favorites.FavoritesSurfaceView
@@ -42,7 +43,7 @@ class FavoritesActivity : AppCompatActivity() {
 	fun removeCard(view: View) {
 		val favoritesDatabase = databaseBuilder(
 			applicationContext,
-			FavoritesDatabase::class.java, "database_18"
+			FavoritesDatabase::class.java, FAVORITES_DB
 		).allowMainThreadQueries().build()
 		val requests = favoritesDatabase.requests()
 		cardPath.let {

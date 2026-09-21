@@ -6,12 +6,9 @@ import android.view.MotionEvent;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import alexrnov.enginegl.commonGL.PositionUtils;
-
 public class FavoritesDetector implements android.view.GestureDetector.OnGestureListener,
 		GestureDetector.OnDoubleTapListener {
-	private PositionUtils positionUtils = new PositionUtils();
-	private FavoritesRenderer renderer;
+	private final FavoritesRenderer renderer;
 
 	public FavoritesDetector(FavoritesRenderer gameRenderer) {
 		renderer = gameRenderer;
@@ -50,7 +47,6 @@ public class FavoritesDetector implements android.view.GestureDetector.OnGesture
 
 	@Override
 	public boolean onScroll(@Nullable MotionEvent e1, @NonNull MotionEvent e2, float distanceX, float distanceY) {
-		//renderer.cameraPosition(distanceY); // camera rotation
 		return true;
 	}
 

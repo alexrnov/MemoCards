@@ -4,12 +4,11 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
 import alexrnov.memocards.view.activity.GameActivity;
-import alexrnov.memocards.cards.CardsSettings;
+import alexrnov.memocards.cards.SceneSettings;
 
 public class GameSurfaceView extends GLSurfaceView {
     GameRenderer renderer;
@@ -22,11 +21,10 @@ public class GameSurfaceView extends GLSurfaceView {
         super(context, attributes);
     }
 
-    public void init(Context context, CardsSettings cardsSettings) {
+    public void init(Context context, SceneSettings sceneSettings) {
         setPreserveEGLContextOnPause(true); // save context OpenGL
         setEGLContextClientVersion(3);
-        Log.i("memo", "init SurfaceView");
-        renderer = new GameRenderer(context, cardsSettings);
+        renderer = new GameRenderer(context, sceneSettings);
         setRenderer(renderer);
         detector = new GestureDetector(context, new GameDetector(renderer));
     }
