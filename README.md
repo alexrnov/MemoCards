@@ -1,4 +1,4 @@
-# Memory game "Fantasy Memo"
+# Memory game
 
 Memory is a popular board game consisting of a set of matching cards with matching images. The main goal is to find all the pairs with a minimum of mistakes. Memory games develop visual memory, attention, and concentration. This game uses cards with fantasy-themed pictures.
 
