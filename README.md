@@ -62,3 +62,28 @@ void main() {
     gl_Position = u_mvpMatrix * a_position;
 }
 ```
+
+Room example: 
+
+```java
+@Dao
+public interface FavoritesRequests {
+	@Query("SELECT COUNT(*) FROM FavoriteEntity")
+	int getCountFavorites();
+
+	@Query("SELECT * FROM FavoriteEntity")
+	List<FavoriteEntity> getAll();
+
+	@Query("SELECT id FROM FavoriteEntity ORDER BY id DESC LIMIT 1")
+	long getLastCardId();
+
+	@Insert(onConflict = OnConflictStrategy.REPLACE)
+	void insert(FavoriteEntity favoriteEntity);
+
+	@Query("SELECT EXISTS(SELECT 1 FROM FavoriteEntity WHERE path = :path LIMIT 1)")
+	boolean isPathExists(String path);
+
+	@Query("DELETE FROM FavoriteEntity WHERE path = :path")
+	void deleteByPath(String path);
+}
+```
