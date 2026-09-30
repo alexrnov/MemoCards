@@ -1,4 +1,6 @@
-# Игра мемори "Fantasy Memo"
+# Memory game "Fantasy Memo"
+
+Memory is a popular board game consisting of a set of matching cards with matching images. The main goal is to find all the pairs with a minimum of mistakes. Memory games develop visual memory, attention, and concentration. This game uses cards with fantasy-themed pictures.
 
 <p align="center">
   <img src="https://github.com/alexrnov/Files/blob/master/fantazy_memo1.png" hspace="10" width="180" title="UI">
